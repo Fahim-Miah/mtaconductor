@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MTA Conductor Exam Prep — Study Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.min.css" />
+<style>
+  :root {
+    --mta-blue: #0039A6;
+    --mta-dark: #001f5c;
+    --mta-orange: #FF6B1A;
+    --mta-yellow: #FFC72C;
+    --mta-green: #00A651;
+    --mta-red: #EE3124;
+  }
+  * { font-family: 'Inter', system-ui, sans-serif; }
+  body { background: #f3f5f9; }
+  .mta-gradient { background: linear-gradient(135deg, #001f5c 0%, #0039A6 50%, #0047bb 100%); }
+  .mta-card { background: white; border: 1px solid #e5e9f2; box-shadow: 0 2px 8px rgba(0,31,92,0.04); }
+  .mta-card:hover { box-shadow: 0 8px 24px rgba(0,31,92,0.1); }
+  .btn-primary { background: var(--mta-blue); color: white; transition: all .2s; }
+  .btn-primary:hover:not(:disabled) { background: var(--mta-dark); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: white; color: var(--mta-blue); border: 2px solid var(--mta-blue); }
+  .btn-secondary:hover { background: #eef2ff; }
+  .choice-btn { transition: all .15s; }
+  .choice-btn:hover:not(:disabled) { background: #eef2ff; border-color: var(--mta-blue); }
+  .choice-btn.correct { background: #d4f5e3 !important; border-color: var(--mta-green) !important; color: #064e3b; }
+  .choice-btn.wrong { background: #fde3e1 !important; border-color: var(--mta-red) !important; color: #7a1a15; }
+  .choice-btn.selected { background: #e0e7ff; border-color: var(--mta-blue); }
+  .tab-active { background: var(--mta-blue); color: white; }
+  .fade-in { animation: fadeIn .3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .category-chip { transition: all .2s; }
+  .category-chip.active { background: var(--mta-blue); color: white; }
+  .category-chip:not(.active) { background: white; color: var(--mta-blue); border: 1px solid #d1d5db; }
+  .stat-card { border-left: 4px solid var(--mta-blue); }
+  .stat-card.orange { border-left-color: var(--mta-orange); }
+  .stat-card.green { border-left-color: var(--mta-green); }
+  .stat-card.red { border-left-color: var(--mta-red); }
+  .modal-overlay { background: rgba(0,20,60,0.6); backdrop-filter: blur(4px); }
+  .confetti { position: fixed; width: 8px; height: 8px; animation: fall 3s linear forwards; z-index: 100; pointer-events: none; }
+  @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  
+  /* Table Styles */
+  .data-table-container { overflow-x: auto; margin-bottom: 1.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .data-table th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; padding: 0.75rem; border-bottom: 2px solid #cbd5e1; }
+  .data-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; color: #475569; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #f8fafc; }
+  .table-caption { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 0.5rem; display: block; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="mta-gradient text-white shadow-lg sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+        <div class="w-8 h-8 bg-[#0039A6] rounded-full flex items-center justify-center text-white font-bold text-sm">M</div>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg sm:text-xl leading-tight">MTA Conductor Exam Prep</h1>
+        <p class="text-xs text-blue-200 hidden sm:block">NYC Transit Authority • Study Hub</p>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1 sm:gap-2">
+      <button data-tab="home" class="tab-btn tab-active px-3 sm:px-4 py-2 rounded-lg text-sm font-medium">Home</button>
+      <button data-tab="quiz" class="tab-btn px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/10">Quiz</button>
+      <button data-tab="review" class="tab-btn px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/10">Review</button>
+      <button data-tab="stats" class="tab-btn px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/10">Stats</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+  <!-- HOME VIEW -->
+  <section id="view-home" class="view fade-in">
+    <div class="mta-gradient hero-pattern rounded-2xl overflow-hidden mb-8 relative">
+      <div class="p-6 sm:p-10 text-white">
+        <span class="inline-block bg-[#FFC72C] text-[#001f5c] text-xs font-bold px-3 py-1 rounded-full mb-3">EXAM PREP</span>
+        <h2 class="text-3xl sm:text-4xl font-bold mb-2">Ready Your Rails, Conductor</h2>
+        <p class="text-blue-100 max-w-2xl">Master signals, rules, safety, and <strong>table interpretation</strong>. Practice with realistic multiple-choice questions modeled on the MTA Conductor exam.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="stat-card mta-card rounded-xl p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Questions</p>
+        <p class="text-2xl font-bold text-[#0039A6]" id="stat-total">0</p>
+      </div>
+      <div class="stat-card green mta-card rounded-xl p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Correct</p>
+        <p class="text-2xl font-bold text-[#00A651]" id="stat-correct">0</p>
+      </div>
+      <div class="stat-card red mta-card rounded-xl p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Accuracy</p>
+        <p class="text-2xl font-bold text-[#EE3124]" id="stat-accuracy">0%</p>
+      </div>
+      <div class="stat-card orange mta-card rounded-xl p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Streak</p>
+        <p class="text-2xl font-bold text-[#FF6B1A]" id="stat-streak">0 🔥</p>
+      </div>
+    </div>
+
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Study by Category</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="category-grid"></div>
+
+    <div class="mta-card rounded-2xl p-6 sm:p-8 text-center">
+      <h3 class="text-2xl font-bold text-gray-800 mb-2">Start a Practice Quiz</h3>
+      <p class="text-gray-600 mb-6">Pick a mode and begin studying immediately.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <button onclick="startQuiz('mixed', 10)" class="btn-primary px-6 py-3 rounded-xl font-semibold">Quick Quiz (10)</button>
+        <button onclick="startQuiz('mixed', 25)" class="btn-secondary px-6 py-3 rounded-xl font-semibold">Full Session (25)</button>
+        <button onclick="startQuiz('mixed', 0)" class="btn-secondary px-6 py-3 rounded-xl font-semibold">All Questions</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ VIEW -->
+  <section id="view-quiz" class="view hidden fade-in">
+    <div id="quiz-empty" class="text-center py-12">
+      <div class="text-6xl mb-4">🚂</div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">No Quiz in Progress</h2>
+      <p class="text-gray-600 mb-6">Start a new quiz to begin practicing.</p>
+      <div class="mta-card rounded-2xl p-6 max-w-md mx-auto mb-6">
+        <h3 class="font-bold text-gray-800 mb-4">Choose a Quiz Mode</h3>
+        <div class="space-y-3">
+          <button onclick="startQuiz('mixed', 10)" class="w-full btn-primary px-5 py-3 rounded-xl font-semibold">Quick Quiz — 10 Questions</button>
+          <button onclick="startQuiz('mixed', 25)" class="w-full btn-secondary px-5 py-3 rounded-xl font-semibold">Full Session — 25 Questions</button>
+          <button onclick="startQuiz('mixed', 0)" class="w-full btn-secondary px-5 py-3 rounded-xl font-semibold">All Questions</button>
+        </div>
+      </div>
+      <div class="mta-card rounded-2xl p-6 max-w-2xl mx-auto">
+        <h3 class="font-bold text-gray-800 mb-4">Or Pick a Category</h3>
+        <div class="flex flex-wrap justify-center gap-2" id="quiz-category-pick"></div>
+      </div>
+    </div>
+
+    <div id="quiz-active" class="hidden">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">Practice Quiz</h2>
+          <p class="text-sm text-gray-500" id="quiz-subtitle">Mixed • 10 questions</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exitQuiz()" class="text-sm text-gray-600 hover:text-[#0039A6] px-3 py-2">← Exit</button>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span id="progress-label">Question 1 of 10</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div id="progress-bar" class="bg-[#0039A6] h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="mta-card rounded-2xl p-6 sm:p-8 mb-4" id="question-card">
+        <div class="flex items-start gap-3 mb-4 flex-wrap">
+          <span id="q-category" class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-100 text-[#0039A6]">Category</span>
+          <span id="q-number" class="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600">#1</span>
+        </div>
+        
+        <!-- Table Container (Hidden by default) -->
+        <div id="table-container" class="hidden mb-6">
+          <span class="table-caption">Refer to the table below to answer this question:</span>
+          <div class="data-table-container" id="table-content"></div>
+        </div>
+
+        <h3 id="q-text" class="text-lg sm:text-xl font-semibold text-gray-800 mb-6 leading-relaxed">Question text goes here?</h3>
+        <div id="choices" class="space-y-3"></div>
+      </div>
+
+      <div id="feedback" class="hidden rounded-2xl p-5 mb-4 border-l-4"></div>
+
+      <div class="flex justify-between items-center flex-wrap gap-3">
+        <button id="btn-submit" onclick="submitAnswer()" class="btn-primary px-6 py-3 rounded-xl font-semibold" disabled>Submit Answer</button>
+        <button id="btn-next" onclick="nextQuestion()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">Next Question →</button>
+        <button id="btn-finish" onclick="finishQuiz()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">View Results</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEW VIEW -->
+  <section id="view-review" class="view hidden fade-in">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Question Review</h2>
+      <p class="text-sm text-gray-500">Browse and study every question in the bank.</p>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-6" id="review-filters"></div>
+    <div class="space-y-4" id="review-list"></div>
+  </section>
+
+  <!-- STATS VIEW -->
+  <section id="view-stats" class="view hidden fade-in">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Your Progress</h2>
+      <p class="text-sm text-gray-500">Track your learning journey over time.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="mta-card rounded-2xl p-6">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Total Attempts</p>
+        <p class="text-4xl font-bold text-[#0039A6] mt-2" id="s-attempts">0</p>
+      </div>
+      <div class="mta-card rounded-2xl p-6">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Overall Accuracy</p>
+        <p class="text-4xl font-bold text-[#00A651] mt-2" id="s-accuracy">0%</p>
+      </div>
+      <div class="mta-card rounded-2xl p-6">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Best Streak</p>
+        <p class="text-4xl font-bold text-[#FF6B1A] mt-2" id="s-streak">0</p>
+      </div>
+    </div>
+
+    <div class="mta-card rounded-2xl p-6 mb-6">
+      <h3 class="font-bold text-gray-800 mb-4">Performance by Category</h3>
+      <div id="category-stats" class="space-y-3"></div>
+    </div>
+
+    <div class="mta-card rounded-2xl p-6 mb-6">
+      <h3 class="font-bold text-gray-800 mb-4">Recent Sessions</h3>
+      <div id="recent-sessions" class="space-y-2"></div>
+    </div>
+
+    <div class="text-center">
+      <button onclick="resetStats()" class="text-sm text-gray-500 hover:text-[#EE3124] underline">Reset All Progress</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="results-modal" class="hidden fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-8 text-center fade-in relative">
+    <button onclick="closeResults()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+    <div id="results-icon" class="text-6xl mb-4">🎉</div>
+    <h3 class="text-2xl font-bold text-gray-800 mb-2" id="results-title">Quiz Complete!</h3>
+    <p class="text-gray-600 mb-6" id="results-subtitle">Here's how you did.</p>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-gray-50 rounded-xl p-3">
+        <p class="text-xs text-gray-500">Score</p>
+        <p class="text-xl font-bold text-[#0039A6]" id="r-score">0/0</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-3">
+        <p class="text-xs text-gray-500">Accuracy</p>
+        <p class="text-xl font-bold text-[#00A651]" id="r-accuracy">0%</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-3">
+        <p class="text-xs text-gray-500">Time</p>
+        <p class="text-xl font-bold text-[#FF6B1A]" id="r-time">0:00</p>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-center flex-wrap">
+      <button onclick="closeResults(); switchTab('review')" class="btn-secondary px-5 py-2.5 rounded-xl font-semibold text-sm">Review Answers</button>
+      <button onclick="closeResults(); startQuiz(lastQuizConfig.category, lastQuizConfig.count)" class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<footer class="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
+  <p>Unofficial study resource. Not affiliated with the MTA or NYC Transit Authority.</p>
+  <p class="mt-1">Questions modeled on typical conductor exam topics: signals, rules, safety, equipment, procedures, and table interpretation.</p>
+</footer>
+
+<script>
+// ============ QUESTION BANK ============
+const QUESTIONS = [
+  // SIGNAL INDICATIONS
+  { id: 1, category: "Signal Indications", q: "A signal displaying a RED aspect means:", choices: ["Proceed at restricted speed", "Stop and do not proceed until authorized", "Proceed at normal speed", "Reduce speed to 15 MPH"], correct: 1, explanation: "A red signal is an absolute stop signal. The train must stop and may not proceed until authorized by the dispatcher or control tower." },
+  { id: 2, category: "Signal Indications", q: "What does a YELLOW signal aspect indicate?", choices: ["Stop", "Proceed at restricted speed", "Approach — prepare to stop at next signal", "Clear — proceed at authorized speed"], correct: 2, explanation: "Yellow is an 'Approach' indication. The train must be prepared to stop at the next signal." },
+  { id: 3, category: "Signal Indications", q: "A GREEN signal aspect indicates:", choices: ["Stop", "Proceed at restricted speed", "Approach next signal prepared to stop", "Clear — proceed at authorized speed"], correct: 3, explanation: "Green is a 'Clear' indication. The train may proceed at the authorized speed for the route." },
+  { id: 4, category: "Signal Indications", q: "A flashing YELLOW signal typically indicates:", choices: ["Stop immediately", "Proceed at normal speed", "Advance approach — prepare to stop at second signal", "Track out of service"], correct: 2, explanation: "Flashing yellow is an 'Advance Approach' indication, meaning prepare to stop at the second signal ahead." },
+  { id: 5, category: "Signal Indications", q: "When a signal is completely dark (no aspect showing), it should be treated as:", choices: ["Clear", "Approach", "Most restrictive aspect (Stop)", "Restricted speed only"], correct: 2, explanation: "A dark signal is treated as displaying the most restrictive aspect — stop." },
+  { id: 6, category: "Signal Indications", q: "A dwarf signal displaying red means:", choices: ["Proceed at restricted speed", "Stop — do not pass", "Clear", "Switch is aligned"], correct: 1, explanation: "A red dwarf signal means stop. It governs movements through switches and interlockings." },
+
+  // OPERATING RULES
+  { id: 7, category: "Operating Rules", q: "What is the maximum authorized speed for a subway train in a tunnel under normal conditions?", choices: ["25 MPH", "35 MPH", "55 MPH", "Varies by route and signal"], correct: 3, explanation: "Speed limits vary by route, track condition, and signal indication. Always obey posted speed limits and signal aspects." },
+  { id: 8, category: "Operating Rules", q: "When operating in 'Restricted Speed' mode, the train must:", choices: ["Not exceed 15 MPH and be able to stop within half the range of vision", "Not exceed 25 MPH", "Stop at every signal", "Sound the horn continuously"], correct: 0, explanation: "Restricted speed means proceeding at a speed that allows stopping within half the range of vision, not exceeding 15 MPH." },
+  { id: 9, category: "Operating Rules", q: "Before moving a train, the conductor must:", choices: ["Sound the horn twice", "Verify all doors are closed and secure, and receive proper signal from the motorman", "Check the weather", "Call the dispatcher"], correct: 1, explanation: "The conductor must ensure all doors are closed and secure and give the proper signal to the motorman before the train moves." },
+  { id: 10, category: "Operating Rules", q: "A train approaching a bumping post at the end of a track must:", choices: ["Stop at least 50 feet away", "Stop before contacting the bumping post", "Slow to 5 MPH and contact it gently", "Sound horn and proceed"], correct: 1, explanation: "Trains must stop before contacting the bumping post at terminal tracks." },
+  { id: 11, category: "Operating Rules", q: "When a train is stopped at a station for an extended period, the conductor should:", choices: ["Leave the train unattended", "Make periodic announcements to passengers", "Turn off all lights", "Exit the train"], correct: 1, explanation: "The conductor should make periodic announcements to keep passengers informed during extended stops." },
+  { id: 12, category: "Operating Rules", q: "The proper procedure when passing a stop signal without authority is to:", choices: ["Continue to next station", "Stop immediately and notify the dispatcher", "Reverse direction", "Sound the horn"], correct: 1, explanation: "Passing a stop signal without authority is a serious rules violation. Stop immediately and notify the dispatcher." },
+
+  // SAFETY & EMERGENCY
+  { id: 13, category: "Safety & Emergency", q: "In the event of a fire on the train, the conductor's first action should be to:", choices: ["Open all doors immediately", "Notify the motorman and dispatcher, and evacuate passengers if safe", "Attempt to fight the fire alone", "Continue to next station"], correct: 1, explanation: "Notify the motorman and dispatcher immediately. Evacuate passengers only when safe and authorized." },
+  { id: 14, category: "Safety & Emergency", q: "When evacuating passengers through the tunnel, they should walk:", choices: ["In any direction", "Toward the nearest station or exit, away from the third rail", "Along the third rail", "Back the way the train came"], correct: 1, explanation: "Passengers should be directed toward the nearest station/exit and kept away from the third rail, which carries 600+ volts." },
+  { id: 15, category: "Safety & Emergency", q: "The third rail in the NYC subway carries approximately:", choices: ["120 volts AC", "240 volts DC", "600-650 volts DC", "1000 volts AC"], correct: 2, explanation: "The third rail carries approximately 600-650 volts DC, which is lethal." },
+  { id: 16, category: "Safety & Emergency", q: "If a passenger falls onto the tracks, the conductor should:", choices: ["Jump down to rescue them", "Immediately notify the motorman and dispatcher, and stop all train movement", "Throw them a rope", "Wait for them to climb up"], correct: 1, explanation: "Immediately notify the motorman and dispatcher. No train movement should occur until the person is safe." },
+  { id: 17, category: "Safety & Emergency", q: "The emergency brake valve (conductor's valve) is used to:", choices: ["Slow the train gradually", "Stop the train immediately in an emergency", "Release the brakes", "Test the brakes"], correct: 1, explanation: "The conductor's valve applies an emergency brake application to stop the train immediately." },
+  { id: 18, category: "Safety & Emergency", q: "When using a fire extinguisher, the proper technique is remembered by the acronym:", choices: ["STOP", "PASS (Pull, Aim, Squeeze, Sweep)", "FIRE", "SAFE"], correct: 1, explanation: "PASS: Pull the pin, Aim at the base, Squeeze the handle, Sweep side to side." },
+  { id: 19, category: "Safety & Emergency", q: "In the event of a derailment, the conductor should first:", choices: ["Try to re-rail the train", "Ensure passenger safety, notify dispatcher, and await instructions", "Evacuate immediately without notification", "Continue to next station"], correct: 1, explanation: "Passenger safety comes first. Notify the dispatcher and await instructions before any movement." },
+
+  // EQUIPMENT & MECHANICAL
+  { id: 20, category: "Equipment", q: "The primary purpose of the coupler on a subway car is to:", choices: ["Connect cars together mechanically and electrically", "Apply the brakes", "Control the doors", "Power the train"], correct: 0, explanation: "Couplers connect cars together both mechanically (for pulling/pushing) and electrically (for control circuits)." },
+  { id: 21, category: "Equipment", q: "The 'dead man's pedal' or 'alerter' in the motorman's cab is designed to:", choices: ["Control the doors", "Ensure the motorman is alert; releases brakes if not depressed", "Sound the horn", "Control the lights"], correct: 1, explanation: "The alerter/dead man's pedal ensures the motorman is alert. If released, it applies the brakes automatically." },
+  { id: 22, category: "Equipment", q: "The pantograph is used on trains that draw power from:", choices: ["Third rail", "Overhead catenary wire", "Diesel engine", "Battery"], correct: 1, explanation: "A pantograph collects power from an overhead catenary wire. NYC subway cars primarily use third-rail shoes." },
+  { id: 23, category: "Equipment", q: "The 'trainline' refers to:", choices: ["The route the train travels", "The electrical/control circuit running the length of the train", "The passenger seating area", "The schedule"], correct: 1, explanation: "The trainline is the electrical/control circuit that runs through all cars, allowing unified control." },
+  { id: 24, category: "Equipment", q: "Air brakes on a subway train operate on the principle of:", choices: ["Vacuum pressure", "Compressed air — loss of pressure applies brakes", "Hydraulic fluid", "Electric motors only"], correct: 1, explanation: "Subway air brakes are fail-safe: loss of air pressure automatically applies the brakes." },
+  { id: 25, category: "Equipment", q: "The 'shoe beam' on a subway car holds the:", choices: ["Door mechanisms", "Third rail contact shoes", "Brake cylinders", "Couplers"], correct: 1, explanation: "The shoe beam holds the contact shoes that collect power from the third rail." },
+
+  // COMMUNICATION & RADIO
+  { id: 26, category: "Communication", q: "The standard radio channel for train operations is typically called:", choices: ["Channel 1", "Train Operations / Control Channel", "Emergency Channel", "Public Channel"], correct: 1, explanation: "Train operations use the designated control/operations channel for communication with dispatchers." },
+  { id: 27, category: "Communication", q: "When communicating on the radio, you should:", choices: ["Use slang and abbreviations", "Speak clearly, identify yourself, and use proper terminology", "Shout to be heard", "Keep transmissions as long as possible"], correct: 1, explanation: "Radio communication should be clear, concise, and use proper terminology with proper identification." },
+  { id: 28, category: "Communication", q: "The emergency radio channel is used for:", choices: ["Routine announcements", "Emergency communications only", "Personal calls", "Music"], correct: 1, explanation: "The emergency channel is reserved for emergency communications only." },
+  { id: 29, category: "Communication", q: "The proper way to identify yourself on the radio is:", choices: ["Your first name", "Your train number/ID and position", "Just 'conductor'", "Your badge number only"], correct: 1, explanation: "Identify by train number/ID and your position for clear, unambiguous communication." },
+  { id: 30, category: "Communication", q: "A clear language policy on MTA radio means:", choices: ["Only use 10-codes", "Use plain, clear language for safety-critical communications", "Speak in code", "Use only numbers"], correct: 1, explanation: "Modern transit agencies emphasize plain, clear language for safety-critical communications to avoid confusion." },
+
+  // ROUTE & TERMINAL
+  { id: 31, category: "Route Knowledge", q: "A 'terminal' in subway operations refers to:", choices: ["Any station", "The end of the line where trains reverse direction", "A maintenance facility", "A ticket office"], correct: 1, explanation: "A terminal is the end of the line where trains reverse direction or lay up." },
+  { id: 32, category: "Route Knowledge", q: "A 'lay-up' track is used to:", choices: ["Store trains out of service", "Load passengers", "Repair tracks", "Test signals"], correct: 0, explanation: "Lay-up tracks store trains that are out of service or waiting to enter service." },
+  { id: 33, category: "Route Knowledge", q: "A 'crossover' allows a train to:", choices: ["Cross over a river", "Move from one track to another", "Cross a road", "Pass another train at speed"], correct: 1, explanation: "A crossover is a track arrangement that allows a train to move from one track to an adjacent track." },
+  { id: 34, category: "Route Knowledge", q: "The 'diamond' in track work refers to:", choices: ["A type of signal", "Where two tracks cross each other", "A station layout", "A type of rail"], correct: 1, explanation: "A diamond is where two tracks cross each other, typically at an interlocking." },
+  { id: 35, category: "Route Knowledge", q: "A 'pocket track' is used for:", choices: ["Storing a train temporarily between services", "Passenger waiting", "Maintenance only", "Emergency evacuation"], correct: 0, explanation: "A pocket track allows a train to be stored temporarily between services or to turn around." },
+
+  // GENERAL / APTITUDE
+  { id: 36, category: "General Knowledge", q: "The MTA stands for:", choices: ["Metropolitan Transportation Authority", "Metro Transit Agency", "Municipal Transport Association", "Metropolitan Train Authority"], correct: 0, explanation: "MTA stands for Metropolitan Transportation Authority, which oversees NYC public transportation." },
+  { id: 37, category: "General Knowledge", q: "NYC Transit operates how many subway lines (by letter/number)?", choices: ["15", "24", "36", "47"], correct: 2, explanation: "NYC Transit operates 36 subway routes (counting each letter/number service)." },
+  { id: 38, category: "General Knowledge", q: "The NYC subway system has approximately how many stations?", choices: ["250", "472", "600", "800"], correct: 1, explanation: "The NYC subway has 472 stations, making it one of the largest systems in the world." },
+  { id: 39, category: "General Knowledge", q: "The conductor's primary responsibility is:", choices: ["Driving the train", "Passenger safety, door operation, and train supervision", "Selling tickets", "Cleaning the train"], correct: 1, explanation: "The conductor is responsible for passenger safety, door operation, and overall train supervision." },
+  { id: 40, category: "General Knowledge", q: "A 'turnback' is when a train:", choices: ["Reverses direction before reaching the terminal", "Returns to the yard", "Goes into a pocket track", "All of the above"], correct: 3, explanation: "A turnback can involve reversing before the terminal, returning to the yard, or using a pocket track." },
+  { id: 41, category: "General Knowledge", q: "The 'headway' refers to:", choices: ["The front of the train", "Time/distance between consecutive trains", "The train's speed", "Track gauge"], correct: 1, explanation: "Headway is the time or distance between consecutive trains on the same route." },
+  { id: 42, category: "General Knowledge", q: "A 'work train' or 'maintenance train' has:", choices: ["Priority over all passenger trains", "Lower priority than passenger trains unless authorized", "Same priority as passenger trains", "No priority rules"], correct: 1, explanation: "Work trains generally have lower priority than passenger trains unless specifically authorized by the dispatcher." },
+  { id: 43, category: "General Knowledge", q: "The 'blue flag' protection system is used to:", choices: ["Signal trains to stop", "Protect workers on or near tracks from train movement", "Mark defective cars", "Indicate a station"], correct: 1, explanation: "Blue flag protection ensures workers on or near tracks are protected from train movement." },
+  { id: 44, category: "General Knowledge", q: "When coupling cars, the conductor must verify:", choices: ["Only the mechanical connection", "Both mechanical and electrical connections are secure", "Only the electrical connection", "Nothing — it's automatic"], correct: 1, explanation: "Both mechanical and electrical connections must be verified secure before moving the train." },
+  { id: 45, category: "General Knowledge", q: "A 'flagman' is responsible for:", choices: ["Selling flags", "Protecting a work zone with flags/signals", "Cleaning signals", "Driving the train"], correct: 1, explanation: "A flagman protects a work zone by displaying flags/signals to warn approaching trains." },
+  { id: 46, category: "Safety & Emergency", q: "The emergency exit hatches on subway cars are located:", choices: ["Only at the ends", "On the roof and/or ends of cars", "Under the seats", "In the vestibules only"], correct: 1, explanation: "Emergency exits are typically on the roof and/or at the ends of cars for evacuation." },
+  { id: 47, category: "Operating Rules", q: "A 'clear block' means:", choices: ["The track is free of trains and safe to enter", "The track is blocked", "The signal is red", "The train must stop"], correct: 0, explanation: "A clear block means the track section is free of trains and safe to enter." },
+  { id: 48, category: "Equipment", q: "The 'MU' (Multiple Unit) control allows:", choices: ["One motorman to control multiple cars from a single cab", "Multiple trains on one track", "Multiple conductors", "Multiple routes"], correct: 0, explanation: "MU control allows one motorman to control multiple coupled cars from a single cab." },
+  { id: 49, category: "Communication", q: "The PA (Public Address) system is used to:", choices: ["Communicate with the dispatcher only", "Make announcements to passengers", "Test the radio", "Call other trains"], correct: 1, explanation: "The PA system is used to make announcements to passengers on the train." },
+  { id: 50, category: "Safety & Emergency", q: "If the train loses power in a tunnel, the conductor should:", choices: ["Evacuate immediately", "Notify the motorman and dispatcher, await instructions, and reassure passengers", "Open doors and let passengers out", "Walk to the next station"], correct: 1, explanation: "Notify the motorman and dispatcher, await instructions, and reassure passengers. Do not evacuate without authorization." },
+
+  // TABLE INTERPRETATION QUESTIONS
+  { 
+    id: 51, 
+    category: "Table Interpretation", 
+    q: "Based on the 'Standard Subway Car Dimensions' table, what is the total length of a 10-car train consisting entirely of R160 models?", 
+    table: {
+      caption: "Table 1: Standard Subway Car Dimensions",
+      headers: ["Model", "Length (ft)", "Width (ft)", "Height (ft)", "Max Capacity"],
+      rows: [
+        ["R46", "75", "10", "12.5", "1,200"],
+        ["R142", "51", "10", "12.5", "800"],
+        ["R160", "51", "10", "12.5", "800"],
+        ["R179", "51", "10", "12.5", "800"],
+        ["R211", "51", "10", "12.5", "800"]
+      ]
+    },
+    choices: ["510 feet", "750 feet", "600 feet", "51 feet"], 
+    correct: 0, 
+    explanation: "The R160 model is 51 feet long. A 10-car train would be 51 x 10 = 510 feet long." 
+  },
+  { 
+    id: 52, 
+    category: "Table Interpretation", 
+    q: "According to the 'Signal Aspects' table, if you see a signal displaying 'Red over Yellow', what is your required action?", 
+    table: {
+      caption: "Table 2: Signal Aspect Meanings",
+      headers: ["Aspect Display", "Indication Name", "Required Action"],
+      rows: [
+        ["Green", "Clear", "Proceed at authorized speed"],
+        ["Yellow", "Approach", "Prepare to stop at next signal"],
+        ["Red", "Stop", "Stop and do not proceed"],
+        ["Red over Yellow", "Restricting", "Proceed at restricted speed (max 15 MPH)"],
+        ["Flashing Yellow", "Advance Approach", "Prepare to stop at 2nd signal"]
+      ]
+    },
+    choices: ["Stop immediately", "Proceed at authorized speed", "Proceed at restricted speed (max 15 MPH)", "Prepare to stop at next signal"], 
+    correct: 2, 
+    explanation: "The table explicitly states that 'Red over Yellow' indicates 'Restricting', requiring the train to proceed at restricted speed (max 15 MPH)." 
+  },
+  { 
+    id: 53, 
+    category: "Table Interpretation", 
+    q: "Using the 'Track Speed Limits' table, what is the maximum authorized speed for a train traveling through a sharp curve in Zone C?", 
+    table: {
+      caption: "Table 3: Track Speed Limits by Zone and Condition",
+      headers: ["Zone", "Straight Track (MPH)", "Moderate Curve (MPH)", "Sharp Curve (MPH)", "Station Approach (MPH)"],
+      rows: [
+        ["Zone A (Manhattan)", "55", "35", "15", "10"],
+        ["Zone B (Bronx/Queens)", "55", "35", "20", "10"],
+        ["Zone C (Brooklyn)", "50", "30", "15", "10"],
+        ["Zone D (Staten Island)", "45", "25", "10", "10"]
+      ]
+    },
+    choices: ["15 MPH", "20 MPH", "30 MPH", "10 MPH"], 
+    correct: 0, 
+    explanation: "Looking at the row for 'Zone C (Brooklyn)' and the column for 'Sharp Curve (MPH)', the limit is 15 MPH." 
+  },
+  { 
+    id: 54, 
+    category: "Table Interpretation", 
+    q: "Refer to the 'Emergency Equipment Inventory' table. How many fire extinguishers are required in total for a 6-car train?", 
+    table: {
+      caption: "Table 4: Emergency Equipment Inventory Per Car",
+      headers: ["Equipment Type", "Quantity Per Car", "Location", "Inspection Frequency"],
+      rows: [
+        ["Fire Extinguisher (ABC)", "2", "End Vestibules", "Monthly"],
+        ["First Aid Kit", "1", "Conductor's Cab", "Quarterly"],
+        ["Emergency Hammer", "4", "Windows", "Annually"],
+        ["Flashlight", "2", "Crew Areas", "Weekly"]
+      ]
+    },
+    choices: ["6", "10", "12", "24"], 
+    correct: 2, 
+    explanation: "The table shows 2 Fire Extinguishers per car. For a 6-car train: 2 x 6 = 12 fire extinguishers." 
+  },
+  { 
+    id: 55, 
+    category: "Table Interpretation", 
+    q: "Based on the 'Radio Channel Usage' table, which channel should a conductor use to report a minor delay that is not an emergency?", 
+    table: {
+      caption: "Table 5: Radio Channel Usage Guide",
+      headers: ["Channel Name", "Primary Use", "Priority Level", "Notes"],
+      rows: [
+        ["Channel 1 (Ops)", "Routine train movements, delays, status updates", "Normal", "Main operational channel"],
+        ["Channel 2 (Emerg)", "Life safety emergencies, fires, medical", "High", "Keep clear for emergencies"],
+        ["Channel 3 (Maint)", "Track maintenance coordination", "Low", "Work trains only"],
+        ["Channel 4 (Admin)", "Administrative and non-operational talk", "Lowest", "Do not use for train ops"]
+      ]
+    },
+    choices: ["Channel 1 (Ops)", "Channel 2 (Emerg)", "Channel 3 (Maint)", "Channel 4 (Admin)"], 
+    correct: 0, 
+    explanation: "Channel 1 (Ops) is designated for 'Routine train movements, delays, status updates' with Normal priority." 
+  },
+  { 
+    id: 56, 
+    category: "Table Interpretation", 
+    q: "According to the 'Brake Test Procedures' table, what is the minimum air pressure required before a train can depart the yard?", 
+    table: {
+      caption: "Table 6: Brake Test Procedures and Standards",
+      headers: ["Test Type", "Minimum Pressure (PSI)", "Maximum Leakage (PSI/min)", "Action if Failed"],
+      rows: [
+        ["Initial Application", "90", "3", "Retest once"],
+        ["Full Service", "90", "3", "Tag car out of service"],
+        ["Emergency Application", "90", "N/A", "Inspect valves"],
+        ["Yard Departure Check", "90", "2", "Do not depart"]
+      ]
+    },
+    choices: ["70 PSI", "80 PSI", "90 PSI", "100 PSI"], 
+    correct: 2, 
+    explanation: "The 'Yard Departure Check' row shows a Minimum Pressure of 90 PSI." 
+  },
+  { 
+    id: 57, 
+    category: "Table Interpretation", 
+    q: "Using the 'Shift Schedule' table, if a conductor starts their shift at 06:00, when is their scheduled meal break?", 
+    table: {
+      caption: "Table 7: Typical Conductor Shift Schedule",
+      headers: ["Shift Start", "Morning Report", "Meal Break Window", "End of Shift"],
+      rows: [
+        ["06:00", "05:45", "10:00 - 11:00", "14:00"],
+        ["14:00", "13:45", "18:00 - 19:00", "22:00"],
+        ["22:00", "21:45", "02:00 - 03:00", "06:00"]
+      ]
+    },
+    choices: ["08:00 - 09:00", "10:00 - 11:00", "12:00 - 13:00", "14:00 - 15:00"], 
+    correct: 1, 
+    explanation: "The row for Shift Start '06:00' lists the Meal Break Window as '10:00 - 11:00'." 
+  },
+  { 
+    id: 58, 
+    category: "Table Interpretation", 
+    q: "Refer to the 'Defect Code' table. What action is required for a defect coded 'D-4'?", 
+    table: {
+      caption: "Table 8: Common Defect Codes and Actions",
+      headers: ["Code", "Description", "Severity", "Required Action"],
+      rows: [
+        ["D-1", "Minor Interior Damage", "Low", "Report at end of run"],
+        ["D-2", "Door Sensor Fault", "Medium", "Take car out of service at terminal"],
+        ["D-3", "Brake Shoe Wear", "High", "Immediate inspection"],
+        ["D-4", "Third Rail Shoe Missing", "Critical", "Stop immediately, do not move"]
+      ]
+    },
+    choices: ["Report at end of run", "Take car out of service at terminal", "Immediate inspection", "Stop immediately, do not move"], 
+    correct: 3, 
+    explanation: "The row for Code 'D-4' (Third Rail Shoe Missing) lists the Required Action as 'Stop immediately, do not move'." 
+  },
+  { 
+    id: 59, 
+    category: "Table Interpretation", 
+    q: "Based on the 'Weather Protocol' table, what is the speed restriction when visibility is less than 100 feet due to fog?", 
+    table: {
+      caption: "Table 9: Weather-Related Operating Protocols",
+      headers: ["Condition", "Visibility/Threshold", "Speed Restriction", "Additional Action"],
+      rows: [
+        ["Heavy Rain", "< 500 ft visibility", "Reduce by 10 MPH", "Wipers on high"],
+        ["Snow/Ice", "Accumulation > 1 inch", "Reduce by 20 MPH", "Sand cars"],
+        ["Fog", "< 100 ft visibility", "Restricted Speed (15 MPH)", "Sound horn frequently"],
+        ["High Wind", "> 50 MPH gusts", "Suspend outdoor work", "Secure loose items"]
+      ]
+    },
+    choices: ["Reduce by 10 MPH", "Reduce by 20 MPH", "Restricted Speed (15 MPH)", "Suspend outdoor work"], 
+    correct: 2, 
+    explanation: "The 'Fog' row with '< 100 ft visibility' specifies a speed restriction of 'Restricted Speed (15 MPH)'." 
+  },
+  { 
+    id: 60, 
+    category: "Table Interpretation", 
+    q: "According to the 'Passenger Capacity' table, which car model has the highest standing capacity?", 
+    table: {
+      caption: "Table 10: Passenger Capacity by Model",
+      headers: ["Model", "Seated Capacity", "Standing Capacity", "Total Capacity"],
+      rows: [
+        ["R46", "100", "1100", "1200"],
+        ["R142", "80", "720", "800"],
+        ["R160", "80", "720", "800"],
+        ["R179", "80", "720", "800"],
+        ["R211", "80", "720", "800"]
+      ]
+    },
+    choices: ["R46", "R142", "R160", "R211"], 
+    correct: 0, 
+    explanation: "The R46 model has a Standing Capacity of 1100, which is higher than the 720 of the other models listed." 
+  }
+];
+
+const CATEGORIES = [...new Set(QUESTIONS.map(q => q.category))];
+const CAT_ICONS = {
+  "Signal Indications": "🚦",
+  "Operating Rules": "📋",
+  "Safety & Emergency": "🚨",
+  "Equipment": "⚙️",
+  "Communication": "📻",
+  "Route Knowledge": "🗺️",
+  "General Knowledge": "📚",
+  "Table Interpretation": "📊"
+};
+
+// ============ STATE ============
+let state = {
+  currentTab: 'home',
+  quizQuestions: [],
+  currentIndex: 0,
+  selectedChoice: null,
+  answered: false,
+  score: 0,
+  startTime: null,
+  quizActive: false,
+  stats: loadStats()
+};
+let lastQuizConfig = { category: 'mixed', count: 10 };
+
+function loadStats() {
+  try {
+    const s = localStorage.getItem('mta-conductor-stats');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return { attempts: 0, correct: 0, total: 0, bestStreak: 0, currentStreak: 0, byCategory: {}, sessions: [] };
+}
+function saveStats() {
+  try { localStorage.setItem('mta-conductor-stats', JSON.stringify(state.stats)); } catch(e) {}
+}
+
+// ============ TABS ============
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('tab-active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  const view = document.getElementById(`view-${tab}`);
+  view.classList.remove('hidden');
+  // Re-trigger fade animation
+  view.classList.remove('fade-in');
+  void view.offsetWidth;
+  view.classList.add('fade-in');
+
+  if (tab === 'home') renderHome();
+  if (tab === 'quiz') renderQuizView();
+  if (tab === 'review') renderReview();
+  if (tab === 'stats') renderStats();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============ HOME ============
+function renderHome() {
+  document.getElementById('stat-total').textContent = state.stats.total;
+  document.getElementById('stat-correct').textContent = state.stats.correct;
+  const acc = state.stats.total > 0 ? Math.round(state.stats.correct / state.stats.total * 100) : 0;
+  document.getElementById('stat-accuracy').textContent = acc + '%';
+  document.getElementById('stat-streak').textContent = state.stats.currentStreak + ' 🔥';
+
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = CATEGORIES.map(cat => {
+    const total = QUESTIONS.filter(q => q.category === cat).length;
+    const catStats = state.stats.byCategory[cat] || { total: 0, correct: 0 };
+    const acc = catStats.total > 0 ? Math.round(catStats.correct / catStats.total * 100) : 0;
+    return `
+      <div class="mta-card rounded-2xl p-5 cursor-pointer" onclick="startQuiz('${cat}', 0)">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">${CAT_ICONS[cat] || '📖'}</span>
+          <span class="text-xs bg-blue-50 text-[#0039A6] px-2 py-1 rounded-full font-semibold">${total} Qs</span>
+        </div>
+        <h4 class="font-bold text-gray-800 mb-1">${cat}</h4>
+        <p class="text-xs text-gray-500 mb-3">${catStats.total} attempted • ${acc}% accuracy</p>
+        <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-[#0039A6] h-1.5 rounded-full transition-all" style="width:${acc}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============ QUIZ ============
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function renderQuizView() {
+  const emptyEl = document.getElementById('quiz-empty');
+  const activeEl = document.getElementById('quiz-active');
+  if (state.quizActive && state.quizQuestions.length > 0) {
+    emptyEl.classList.add('hidden');
+    activeEl.classList.remove('hidden');
+    renderQuestion();
+  } else {
+    emptyEl.classList.remove('hidden');
+    activeEl.classList.add('hidden');
+    renderQuizCategoryPick();
+  }
+}
+
+function renderQuizCategoryPick() {
+  const el = document.getElementById('quiz-category-pick');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => {
+    const n = QUESTIONS.filter(q => q.category === c).length;
+    return `<button onclick="startQuiz('${c}', 0)" class="category-chip px-4 py-2 rounded-full text-sm font-medium">${CAT_ICONS[c]} ${c} (${n})</button>`;
+  }).join('');
+}
+
+function startQuiz(category, count) {
+  let pool = category === 'mixed' ? QUESTIONS : QUESTIONS.filter(q => q.category === category);
+  pool = shuffle(pool);
+  if (count > 0) pool = pool.slice(0, count);
+  if (pool.length === 0) { alert('No questions available.'); return; }
+
+  state.quizQuestions = pool;
+  state.currentIndex = 0;
+  state.score = 0;
+  state.selectedChoice = null;
+  state.answered = false;
+  state.startTime = Date.now();
+  state.quizActive = true;
+  lastQuizConfig = { category, count };
+
+  document.getElementById('quiz-subtitle').textContent =
+    `${category === 'mixed' ? 'Mixed' : category} • ${pool.length} question${pool.length !== 1 ? 's' : ''}`;
+
+  switchTab('quiz');
+}
+
+function renderQuestion() {
+  if (!state.quizActive || state.quizQuestions.length === 0) {
+    renderQuizView();
+    return;
+  }
+  const q = state.quizQuestions[state.currentIndex];
+  const total = state.quizQuestions.length;
+  const idx = state.currentIndex + 1;
+
+  document.getElementById('progress-label').textContent = `Question ${idx} of ${total}`;
+  document.getElementById('progress-pct').textContent = Math.round((state.currentIndex / total) * 100) + '%';
+  document.getElementById('progress-bar').style.width = ((state.currentIndex / total) * 100) + '%';
+
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-number').textContent = `#${q.id}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  // Handle Table Display
+  const tableContainer = document.getElementById('table-container');
+  const tableContent = document.getElementById('table-content');
+  if (q.table) {
+    tableContainer.classList.remove('hidden');
+    let html = `<table class="data-table"><thead><tr>`;
+    q.table.headers.forEach(h => html += `<th>${h}</th>`);
+    html += `</tr></thead><tbody>`;
+    q.table.rows.forEach(row => {
+      html += `<tr>`;
+      row.forEach(cell => html += `<td>${cell}</td>`);
+      html += `</tr>`;
+    });
+    html += `</tbody></table>`;
+    tableContent.innerHTML = html;
+  } else {
+    tableContainer.classList.add('hidden');
+    tableContent.innerHTML = '';
+  }
+
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = q.choices.map((c, i) => `
+    <button class="choice-btn w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white font-medium text-gray-700"
+            data-idx="${i}" onclick="selectChoice(${i})">
+      <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold text-sm mr-3">${String.fromCharCode(65+i)}</span>
+      ${c}
+    </button>
+  `).join('');
+
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('btn-submit').classList.remove('hidden');
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-finish').classList.add('hidden');
+  state.selectedChoice = null;
+  state.answered = false;
+}
+
+function selectChoice(idx) {
+  if (state.answered) return;
+  state.selectedChoice = idx;
+  document.querySelectorAll('.choice-btn').forEach((b, i) => {
+    b.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('btn-submit').disabled = false;
+}
+
+function submitAnswer() {
+  if (state.selectedChoice === null || state.answered) return;
+  state.answered = true;
+  const q = state.quizQuestions[state.currentIndex];
+  const isCorrect = state.selectedChoice === q.correct;
+
+  document.querySelectorAll('.choice-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    else if (i === state.selectedChoice && !isCorrect) b.classList.add('wrong');
+  });
+
+  const feedback = document.getElementById('feedback');
+  feedback.classList.remove('hidden');
+  if (isCorrect) {
+    state.score++;
+    state.stats.correct++;
+    state.stats.currentStreak++;
+    if (state.stats.currentStreak > state.stats.bestStreak) state.stats.bestStreak = state.stats.currentStreak;
+    feedback.className = 'rounded-2xl p-5 mb-4 border-l-4 bg-green-50 border-[#00A651] fade-in';
+    feedback.innerHTML = `<div class="flex items-start gap-3"><span class="text-2xl">✅</span><div><p class="font-bold text-green-800">Correct!</p><p class="text-sm text-green-700 mt-1">${q.explanation}</p></div></div>`;
+  } else {
+    state.stats.currentStreak = 0;
+    feedback.className = 'rounded-2xl p-5 mb-4 border-l-4 bg-red-50 border-[#EE3124] fade-in';
+    feedback.innerHTML = `<div class="flex items-start gap-3"><span class="text-2xl">❌</span><div><p class="font-bold text-red-800">Incorrect</p><p class="text-sm text-red-700 mt-1"><strong>Correct answer:</strong> ${q.choices[q.correct]}</p><p class="text-sm text-red-700 mt-2">${q.explanation}</p></div></div>`;
+  }
+
+  state.stats.total++;
+  if (!state.stats.byCategory[q.category]) state.stats.byCategory[q.category] = { total: 0, correct: 0 };
+  state.stats.byCategory[q.category].total++;
+  if (isCorrect) state.stats.byCategory[q.category].correct++;
+
+  document.getElementById('btn-submit').classList.add('hidden');
+  if (state.currentIndex < state.quizQuestions.length - 1) {
+    document.getElementById('btn-next').classList.remove('hidden');
+  } else {
+    document.getElementById('btn-finish').classList.remove('hidden');
+  }
+  saveStats();
+}
+
+function nextQuestion() {
+  state.currentIndex++;
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function finishQuiz() {
+  state.stats.attempts++;
+  const elapsed = Math.round((Date.now() - state.startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const total = state.quizQuestions.length;
+  const acc = Math.round(state.score / total * 100);
+
+  state.stats.sessions.unshift({
+    date: new Date().toISOString(),
+    score: state.score,
+    total,
+    accuracy: acc,
+    category: lastQuizConfig.category
+  });
+  if (state.stats.sessions.length > 20) state.stats.sessions = state.stats.sessions.slice(0, 20);
+  saveStats();
+
+  let icon = '🎉', title = 'Excellent Work!';
+  if (acc < 60) { icon = '📚'; title = 'Keep Studying!'; }
+  else if (acc < 80) { icon = '👍'; title = 'Good Progress!'; }
+
+  document.getElementById('results-icon').textContent = icon;
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-subtitle').textContent = `You answered ${state.score} of ${total} correctly.`;
+  document.getElementById('r-score').textContent = `${state.score}/${total}`;
+  document.getElementById('r-accuracy').textContent = acc + '%';
+  document.getElementById('r-time').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+  document.getElementById('results-modal').classList.remove('hidden');
+
+  if (acc >= 80) spawnConfetti();
+}
+
+function closeResults() {
+  document.getElementById('results-modal').classList.add('hidden');
+  state.quizActive = false;
+  switchTab('home');
+}
+
+function exitQuiz() {
+  if (confirm('Exit quiz? Progress will be lost.')) {
+    state.quizActive = false;
+    state.quizQuestions = [];
+    switchTab('home');
+  }
+}
+
+function spawnConfetti() {
+  const colors = ['#0039A6', '#FFC72C', '#FF6B1A', '#00A651', '#EE3124'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDelay = Math.random() * 2 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+// ============ REVIEW ============
+let reviewFilter = 'all';
+function renderReview() {
+  const filters = document.getElementById('review-filters');
+  filters.innerHTML = `<button class="category-chip ${reviewFilter==='all'?'active':''} px-4 py-2 rounded-full text-sm font-medium" onclick="setReviewFilter('all')">All (${QUESTIONS.length})</button>` +
+    CATEGORIES.map(c => {
+      const n = QUESTIONS.filter(q => q.category === c).length;
+      return `<button class="category-chip ${reviewFilter===c?'active':''} px-4 py-2 rounded-full text-sm font-medium" onclick="setReviewFilter('${c}')">${CAT_ICONS[c]} ${c} (${n})</button>`;
+    }).join('');
+
+  const list = document.getElementById('review-list');
+  const qs = reviewFilter === 'all' ? QUESTIONS : QUESTIONS.filter(q => q.category === reviewFilter);
+  list.innerHTML = qs.map(q => {
+    let tableHtml = '';
+    if (q.table) {
+      tableHtml = `
+        <div class="data-table-container mb-3">
+          <span class="table-caption">${q.table.caption}</span>
+          <table class="data-table">
+            <thead><tr>${q.table.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${q.table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+    return `
+    <div class="mta-card rounded-2xl p-5">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-[#0039A6]">${q.category}</span>
+        <span class="text-xs text-gray-500">#${q.id}</span>
+      </div>
+      ${tableHtml}
+      <p class="font-semibold text-gray-800 mb-3">${q.q}</p>
+      <div class="space-y-2 mb-3">
+        ${q.choices.map((c, i) => `
+          <div class="px-3 py-2 rounded-lg text-sm ${i === q.correct ? 'bg-green-100 border border-green-300 text-green-900 font-medium' : 'bg-gray-50 text-gray-700'}">
+            ${String.fromCharCode(65+i)}. ${c} ${i === q.correct ? '✓' : ''}
+          </div>
+        `).join('')}
+      </div>
+      <div class="text-xs text-gray-600 bg-blue-50 border-l-2 border-[#0039A6] pl-3 py-2 rounded">
+        <strong>Explanation:</strong> ${q.explanation}
+      </div>
+    </div>
+  `}).join('');
+}
+
+function setReviewFilter(f) {
+  reviewFilter = f;
+  renderReview();
+}
+
+// ============ STATS ============
+function renderStats() {
+  document.getElementById('s-attempts').textContent = state.stats.attempts;
+  const acc = state.stats.total > 0 ? Math.round(state.stats.correct / state.stats.total * 100) : 0;
+  document.getElementById('s-accuracy').textContent = acc + '%';
+  document.getElementById('s-streak').textContent = state.stats.bestStreak;
+
+  const catStats = document.getElementById('category-stats');
+  catStats.innerHTML = CATEGORIES.map(c => {
+    const s = state.stats.byCategory[c] || { total: 0, correct: 0 };
+    const a = s.total > 0 ? Math.round(s.correct / s.total * 100) : 0;
+    return `
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span class="font-medium text-gray-700">${CAT_ICONS[c]} ${c}</span>
+          <span class="text-gray-500">${s.correct}/${s.total} • ${a}%</span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+          <div class="bg-[#0039A6] h-2 rounded-full" style="width:${a}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const sess = document.getElementById('recent-sessions');
+  if (state.stats.sessions.length === 0) {
+    sess.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No sessions yet. Take a quiz to get started!</p>';
+  } else {
+    sess.innerHTML = state.stats.sessions.slice(0, 10).map(s => {
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const color = s.accuracy >= 80 ? 'text-[#00A651]' : s.accuracy >= 60 ? 'text-[#FF6B1A]' : 'text-[#EE3124]';
+      return `
+        <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+          <div>
+            <p class="text-sm font-medium text-gray-800">${s.category === 'mixed' ? 'Mixed Quiz' : s.category}</p>
+            <p class="text-xs text-gray-500">${dateStr}</p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold ${color}">${s.accuracy}%</p>
+            <p class="text-xs text-gray-500">${s.score}/${s.total}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function resetStats() {
+  if (confirm('Reset all progress? This cannot be undone.')) {
+    state.stats = { attempts: 0, correct: 0, total: 0, bestStreak: 0, currentStreak: 0, byCategory: {}, sessions: [] };
+    saveStats();
+    renderStats();
+  }
+}
+
+// ============ INIT ============
+renderHome();
+</script>
+</body>
+</html>
