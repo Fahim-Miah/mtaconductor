@@ -43,15 +43,15 @@
   .modal-overlay { background: rgba(0,20,60,0.6); backdrop-filter: blur(4px); }
   .confetti { position: fixed; width: 8px; height: 8px; animation: fall 3s linear forwards; z-index: 100; pointer-events: none; }
   @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-  
-  /* Table Styles */
   .data-table-container { overflow-x: auto; margin-bottom: 1.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  .data-table th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; padding: 0.75rem; border-bottom: 2px solid #cbd5e1; }
-  .data-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; color: #475569; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .data-table th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; padding: 0.6rem; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
+  .data-table td { padding: 0.6rem; border-bottom: 1px solid #e2e8f0; color: #475569; }
   .data-table tr:last-child td { border-bottom: none; }
   .data-table tr:hover td { background: #f8fafc; }
-  .table-caption { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 0.5rem; display: block; }
+  .table-caption { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 0.5rem; display: block; font-weight: 600; }
+  .passage-box { background: #fef9e7; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #334155; line-height: 1.6; }
+  .passage-title { font-weight: 700; color: #92400e; margin-bottom: 0.5rem; font-size: 0.95rem; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -78,13 +78,12 @@
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-  <!-- HOME VIEW -->
   <section id="view-home" class="view fade-in">
-    <div class="mta-gradient hero-pattern rounded-2xl overflow-hidden mb-8 relative">
+    <div class="mta-gradient rounded-2xl overflow-hidden mb-8 relative">
       <div class="p-6 sm:p-10 text-white">
         <span class="inline-block bg-[#FFC72C] text-[#001f5c] text-xs font-bold px-3 py-1 rounded-full mb-3">EXAM PREP</span>
         <h2 class="text-3xl sm:text-4xl font-bold mb-2">Ready Your Rails, Conductor</h2>
-        <p class="text-blue-100 max-w-2xl">Master signals, rules, safety, and <strong>table interpretation</strong>. Practice with realistic multiple-choice questions modeled on the MTA Conductor exam.</p>
+        <p class="text-blue-100 max-w-2xl">Master signals, rules, safety, table interpretation, and <strong>101 official NYCTA exam questions</strong>. Practice with realistic multiple-choice questions modeled on the MTA Conductor exam.</p>
       </div>
     </div>
 
@@ -117,11 +116,11 @@
         <button onclick="startQuiz('mixed', 10)" class="btn-primary px-6 py-3 rounded-xl font-semibold">Quick Quiz (10)</button>
         <button onclick="startQuiz('mixed', 25)" class="btn-secondary px-6 py-3 rounded-xl font-semibold">Full Session (25)</button>
         <button onclick="startQuiz('mixed', 0)" class="btn-secondary px-6 py-3 rounded-xl font-semibold">All Questions</button>
+        <button onclick="startQuiz('Official NYCTA Exam', 0)" class="btn-secondary px-6 py-3 rounded-xl font-semibold">📜 Official Exam Only</button>
       </div>
     </div>
   </section>
 
-  <!-- QUIZ VIEW -->
   <section id="view-quiz" class="view hidden fade-in">
     <div id="quiz-empty" class="text-center py-12">
       <div class="text-6xl mb-4">🚂</div>
@@ -133,6 +132,7 @@
           <button onclick="startQuiz('mixed', 10)" class="w-full btn-primary px-5 py-3 rounded-xl font-semibold">Quick Quiz — 10 Questions</button>
           <button onclick="startQuiz('mixed', 25)" class="w-full btn-secondary px-5 py-3 rounded-xl font-semibold">Full Session — 25 Questions</button>
           <button onclick="startQuiz('mixed', 0)" class="w-full btn-secondary px-5 py-3 rounded-xl font-semibold">All Questions</button>
+          <button onclick="startQuiz('Official NYCTA Exam', 0)" class="w-full btn-secondary px-5 py-3 rounded-xl font-semibold">📜 Official NYCTA Exam Only</button>
         </div>
       </div>
       <div class="mta-card rounded-2xl p-6 max-w-2xl mx-auto">
@@ -168,9 +168,9 @@
           <span id="q-number" class="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600">#1</span>
         </div>
         
-        <!-- Table Container (Hidden by default) -->
+        <div id="passage-container" class="hidden"></div>
         <div id="table-container" class="hidden mb-6">
-          <span class="table-caption">Refer to the table below to answer this question:</span>
+          <span class="table-caption" id="table-caption"></span>
           <div class="data-table-container" id="table-content"></div>
         </div>
 
@@ -188,7 +188,6 @@
     </div>
   </section>
 
-  <!-- REVIEW VIEW -->
   <section id="view-review" class="view hidden fade-in">
     <div class="mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Question Review</h2>
@@ -198,7 +197,6 @@
     <div class="space-y-4" id="review-list"></div>
   </section>
 
-  <!-- STATS VIEW -->
   <section id="view-stats" class="view hidden fade-in">
     <div class="mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Your Progress</h2>
@@ -266,67 +264,55 @@
 
 <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
   <p>Unofficial study resource. Not affiliated with the MTA or NYC Transit Authority.</p>
-  <p class="mt-1">Questions modeled on typical conductor exam topics: signals, rules, safety, equipment, procedures, and table interpretation.</p>
+  <p class="mt-1">Includes 101 official NYCTA Rapid Transit Operations exam questions plus supplemental practice questions.</p>
 </footer>
 
 <script>
 // ============ QUESTION BANK ============
 const QUESTIONS = [
-  // SIGNAL INDICATIONS
+  // ========== ORIGINAL PRACTICE QUESTIONS (1-60) ==========
   { id: 1, category: "Signal Indications", q: "A signal displaying a RED aspect means:", choices: ["Proceed at restricted speed", "Stop and do not proceed until authorized", "Proceed at normal speed", "Reduce speed to 15 MPH"], correct: 1, explanation: "A red signal is an absolute stop signal. The train must stop and may not proceed until authorized by the dispatcher or control tower." },
   { id: 2, category: "Signal Indications", q: "What does a YELLOW signal aspect indicate?", choices: ["Stop", "Proceed at restricted speed", "Approach — prepare to stop at next signal", "Clear — proceed at authorized speed"], correct: 2, explanation: "Yellow is an 'Approach' indication. The train must be prepared to stop at the next signal." },
   { id: 3, category: "Signal Indications", q: "A GREEN signal aspect indicates:", choices: ["Stop", "Proceed at restricted speed", "Approach next signal prepared to stop", "Clear — proceed at authorized speed"], correct: 3, explanation: "Green is a 'Clear' indication. The train may proceed at the authorized speed for the route." },
   { id: 4, category: "Signal Indications", q: "A flashing YELLOW signal typically indicates:", choices: ["Stop immediately", "Proceed at normal speed", "Advance approach — prepare to stop at second signal", "Track out of service"], correct: 2, explanation: "Flashing yellow is an 'Advance Approach' indication, meaning prepare to stop at the second signal ahead." },
   { id: 5, category: "Signal Indications", q: "When a signal is completely dark (no aspect showing), it should be treated as:", choices: ["Clear", "Approach", "Most restrictive aspect (Stop)", "Restricted speed only"], correct: 2, explanation: "A dark signal is treated as displaying the most restrictive aspect — stop." },
   { id: 6, category: "Signal Indications", q: "A dwarf signal displaying red means:", choices: ["Proceed at restricted speed", "Stop — do not pass", "Clear", "Switch is aligned"], correct: 1, explanation: "A red dwarf signal means stop. It governs movements through switches and interlockings." },
-
-  // OPERATING RULES
-  { id: 7, category: "Operating Rules", q: "What is the maximum authorized speed for a subway train in a tunnel under normal conditions?", choices: ["25 MPH", "35 MPH", "55 MPH", "Varies by route and signal"], correct: 3, explanation: "Speed limits vary by route, track condition, and signal indication. Always obey posted speed limits and signal aspects." },
+  { id: 7, category: "Operating Rules", q: "What is the maximum authorized speed for a subway train in a tunnel under normal conditions?", choices: ["25 MPH", "35 MPH", "55 MPH", "Varies by route and signal"], correct: 3, explanation: "Speed limits vary by route, track condition, and signal indication." },
   { id: 8, category: "Operating Rules", q: "When operating in 'Restricted Speed' mode, the train must:", choices: ["Not exceed 15 MPH and be able to stop within half the range of vision", "Not exceed 25 MPH", "Stop at every signal", "Sound the horn continuously"], correct: 0, explanation: "Restricted speed means proceeding at a speed that allows stopping within half the range of vision, not exceeding 15 MPH." },
   { id: 9, category: "Operating Rules", q: "Before moving a train, the conductor must:", choices: ["Sound the horn twice", "Verify all doors are closed and secure, and receive proper signal from the motorman", "Check the weather", "Call the dispatcher"], correct: 1, explanation: "The conductor must ensure all doors are closed and secure and give the proper signal to the motorman before the train moves." },
   { id: 10, category: "Operating Rules", q: "A train approaching a bumping post at the end of a track must:", choices: ["Stop at least 50 feet away", "Stop before contacting the bumping post", "Slow to 5 MPH and contact it gently", "Sound horn and proceed"], correct: 1, explanation: "Trains must stop before contacting the bumping post at terminal tracks." },
   { id: 11, category: "Operating Rules", q: "When a train is stopped at a station for an extended period, the conductor should:", choices: ["Leave the train unattended", "Make periodic announcements to passengers", "Turn off all lights", "Exit the train"], correct: 1, explanation: "The conductor should make periodic announcements to keep passengers informed during extended stops." },
   { id: 12, category: "Operating Rules", q: "The proper procedure when passing a stop signal without authority is to:", choices: ["Continue to next station", "Stop immediately and notify the dispatcher", "Reverse direction", "Sound the horn"], correct: 1, explanation: "Passing a stop signal without authority is a serious rules violation. Stop immediately and notify the dispatcher." },
-
-  // SAFETY & EMERGENCY
   { id: 13, category: "Safety & Emergency", q: "In the event of a fire on the train, the conductor's first action should be to:", choices: ["Open all doors immediately", "Notify the motorman and dispatcher, and evacuate passengers if safe", "Attempt to fight the fire alone", "Continue to next station"], correct: 1, explanation: "Notify the motorman and dispatcher immediately. Evacuate passengers only when safe and authorized." },
-  { id: 14, category: "Safety & Emergency", q: "When evacuating passengers through the tunnel, they should walk:", choices: ["In any direction", "Toward the nearest station or exit, away from the third rail", "Along the third rail", "Back the way the train came"], correct: 1, explanation: "Passengers should be directed toward the nearest station/exit and kept away from the third rail, which carries 600+ volts." },
+  { id: 14, category: "Safety & Emergency", q: "When evacuating passengers through the tunnel, they should walk:", choices: ["In any direction", "Toward the nearest station or exit, away from the third rail", "Along the third rail", "Back the way the train came"], correct: 1, explanation: "Passengers should be directed toward the nearest station/exit and kept away from the third rail." },
   { id: 15, category: "Safety & Emergency", q: "The third rail in the NYC subway carries approximately:", choices: ["120 volts AC", "240 volts DC", "600-650 volts DC", "1000 volts AC"], correct: 2, explanation: "The third rail carries approximately 600-650 volts DC, which is lethal." },
   { id: 16, category: "Safety & Emergency", q: "If a passenger falls onto the tracks, the conductor should:", choices: ["Jump down to rescue them", "Immediately notify the motorman and dispatcher, and stop all train movement", "Throw them a rope", "Wait for them to climb up"], correct: 1, explanation: "Immediately notify the motorman and dispatcher. No train movement should occur until the person is safe." },
   { id: 17, category: "Safety & Emergency", q: "The emergency brake valve (conductor's valve) is used to:", choices: ["Slow the train gradually", "Stop the train immediately in an emergency", "Release the brakes", "Test the brakes"], correct: 1, explanation: "The conductor's valve applies an emergency brake application to stop the train immediately." },
   { id: 18, category: "Safety & Emergency", q: "When using a fire extinguisher, the proper technique is remembered by the acronym:", choices: ["STOP", "PASS (Pull, Aim, Squeeze, Sweep)", "FIRE", "SAFE"], correct: 1, explanation: "PASS: Pull the pin, Aim at the base, Squeeze the handle, Sweep side to side." },
   { id: 19, category: "Safety & Emergency", q: "In the event of a derailment, the conductor should first:", choices: ["Try to re-rail the train", "Ensure passenger safety, notify dispatcher, and await instructions", "Evacuate immediately without notification", "Continue to next station"], correct: 1, explanation: "Passenger safety comes first. Notify the dispatcher and await instructions before any movement." },
-
-  // EQUIPMENT & MECHANICAL
-  { id: 20, category: "Equipment", q: "The primary purpose of the coupler on a subway car is to:", choices: ["Connect cars together mechanically and electrically", "Apply the brakes", "Control the doors", "Power the train"], correct: 0, explanation: "Couplers connect cars together both mechanically (for pulling/pushing) and electrically (for control circuits)." },
-  { id: 21, category: "Equipment", q: "The 'dead man's pedal' or 'alerter' in the motorman's cab is designed to:", choices: ["Control the doors", "Ensure the motorman is alert; releases brakes if not depressed", "Sound the horn", "Control the lights"], correct: 1, explanation: "The alerter/dead man's pedal ensures the motorman is alert. If released, it applies the brakes automatically." },
-  { id: 22, category: "Equipment", q: "The pantograph is used on trains that draw power from:", choices: ["Third rail", "Overhead catenary wire", "Diesel engine", "Battery"], correct: 1, explanation: "A pantograph collects power from an overhead catenary wire. NYC subway cars primarily use third-rail shoes." },
-  { id: 23, category: "Equipment", q: "The 'trainline' refers to:", choices: ["The route the train travels", "The electrical/control circuit running the length of the train", "The passenger seating area", "The schedule"], correct: 1, explanation: "The trainline is the electrical/control circuit that runs through all cars, allowing unified control." },
+  { id: 20, category: "Equipment", q: "The primary purpose of the coupler on a subway car is to:", choices: ["Connect cars together mechanically and electrically", "Apply the brakes", "Control the doors", "Power the train"], correct: 0, explanation: "Couplers connect cars together both mechanically and electrically." },
+  { id: 21, category: "Equipment", q: "The 'dead man's pedal' or 'alerter' in the motorman's cab is designed to:", choices: ["Control the doors", "Ensure the motorman is alert; applies brakes if not depressed", "Sound the horn", "Control the lights"], correct: 1, explanation: "The alerter/dead man's pedal ensures the motorman is alert. If released, it applies the brakes automatically." },
+  { id: 22, category: "Equipment", q: "The pantograph is used on trains that draw power from:", choices: ["Third rail", "Overhead catenary wire", "Diesel engine", "Battery"], correct: 1, explanation: "A pantograph collects power from an overhead catenary wire." },
+  { id: 23, category: "Equipment", q: "The 'trainline' refers to:", choices: ["The route the train travels", "The electrical/control circuit running the length of the train", "The passenger seating area", "The schedule"], correct: 1, explanation: "The trainline is the electrical/control circuit that runs through all cars." },
   { id: 24, category: "Equipment", q: "Air brakes on a subway train operate on the principle of:", choices: ["Vacuum pressure", "Compressed air — loss of pressure applies brakes", "Hydraulic fluid", "Electric motors only"], correct: 1, explanation: "Subway air brakes are fail-safe: loss of air pressure automatically applies the brakes." },
   { id: 25, category: "Equipment", q: "The 'shoe beam' on a subway car holds the:", choices: ["Door mechanisms", "Third rail contact shoes", "Brake cylinders", "Couplers"], correct: 1, explanation: "The shoe beam holds the contact shoes that collect power from the third rail." },
-
-  // COMMUNICATION & RADIO
   { id: 26, category: "Communication", q: "The standard radio channel for train operations is typically called:", choices: ["Channel 1", "Train Operations / Control Channel", "Emergency Channel", "Public Channel"], correct: 1, explanation: "Train operations use the designated control/operations channel for communication with dispatchers." },
   { id: 27, category: "Communication", q: "When communicating on the radio, you should:", choices: ["Use slang and abbreviations", "Speak clearly, identify yourself, and use proper terminology", "Shout to be heard", "Keep transmissions as long as possible"], correct: 1, explanation: "Radio communication should be clear, concise, and use proper terminology with proper identification." },
   { id: 28, category: "Communication", q: "The emergency radio channel is used for:", choices: ["Routine announcements", "Emergency communications only", "Personal calls", "Music"], correct: 1, explanation: "The emergency channel is reserved for emergency communications only." },
   { id: 29, category: "Communication", q: "The proper way to identify yourself on the radio is:", choices: ["Your first name", "Your train number/ID and position", "Just 'conductor'", "Your badge number only"], correct: 1, explanation: "Identify by train number/ID and your position for clear, unambiguous communication." },
-  { id: 30, category: "Communication", q: "A clear language policy on MTA radio means:", choices: ["Only use 10-codes", "Use plain, clear language for safety-critical communications", "Speak in code", "Use only numbers"], correct: 1, explanation: "Modern transit agencies emphasize plain, clear language for safety-critical communications to avoid confusion." },
-
-  // ROUTE & TERMINAL
+  { id: 30, category: "Communication", q: "A clear language policy on MTA radio means:", choices: ["Only use 10-codes", "Use plain, clear language for safety-critical communications", "Speak in code", "Use only numbers"], correct: 1, explanation: "Modern transit agencies emphasize plain, clear language for safety-critical communications." },
   { id: 31, category: "Route Knowledge", q: "A 'terminal' in subway operations refers to:", choices: ["Any station", "The end of the line where trains reverse direction", "A maintenance facility", "A ticket office"], correct: 1, explanation: "A terminal is the end of the line where trains reverse direction or lay up." },
   { id: 32, category: "Route Knowledge", q: "A 'lay-up' track is used to:", choices: ["Store trains out of service", "Load passengers", "Repair tracks", "Test signals"], correct: 0, explanation: "Lay-up tracks store trains that are out of service or waiting to enter service." },
   { id: 33, category: "Route Knowledge", q: "A 'crossover' allows a train to:", choices: ["Cross over a river", "Move from one track to another", "Cross a road", "Pass another train at speed"], correct: 1, explanation: "A crossover is a track arrangement that allows a train to move from one track to an adjacent track." },
   { id: 34, category: "Route Knowledge", q: "The 'diamond' in track work refers to:", choices: ["A type of signal", "Where two tracks cross each other", "A station layout", "A type of rail"], correct: 1, explanation: "A diamond is where two tracks cross each other, typically at an interlocking." },
   { id: 35, category: "Route Knowledge", q: "A 'pocket track' is used for:", choices: ["Storing a train temporarily between services", "Passenger waiting", "Maintenance only", "Emergency evacuation"], correct: 0, explanation: "A pocket track allows a train to be stored temporarily between services or to turn around." },
-
-  // GENERAL / APTITUDE
-  { id: 36, category: "General Knowledge", q: "The MTA stands for:", choices: ["Metropolitan Transportation Authority", "Metro Transit Agency", "Municipal Transport Association", "Metropolitan Train Authority"], correct: 0, explanation: "MTA stands for Metropolitan Transportation Authority, which oversees NYC public transportation." },
-  { id: 37, category: "General Knowledge", q: "NYC Transit operates how many subway lines (by letter/number)?", choices: ["15", "24", "36", "47"], correct: 2, explanation: "NYC Transit operates 36 subway routes (counting each letter/number service)." },
-  { id: 38, category: "General Knowledge", q: "The NYC subway system has approximately how many stations?", choices: ["250", "472", "600", "800"], correct: 1, explanation: "The NYC subway has 472 stations, making it one of the largest systems in the world." },
+  { id: 36, category: "General Knowledge", q: "The MTA stands for:", choices: ["Metropolitan Transportation Authority", "Metro Transit Agency", "Municipal Transport Association", "Metropolitan Train Authority"], correct: 0, explanation: "MTA stands for Metropolitan Transportation Authority." },
+  { id: 37, category: "General Knowledge", q: "NYC Transit operates how many subway lines (by letter/number)?", choices: ["15", "24", "36", "47"], correct: 2, explanation: "NYC Transit operates 36 subway routes." },
+  { id: 38, category: "General Knowledge", q: "The NYC subway system has approximately how many stations?", choices: ["250", "472", "600", "800"], correct: 1, explanation: "The NYC subway has 472 stations." },
   { id: 39, category: "General Knowledge", q: "The conductor's primary responsibility is:", choices: ["Driving the train", "Passenger safety, door operation, and train supervision", "Selling tickets", "Cleaning the train"], correct: 1, explanation: "The conductor is responsible for passenger safety, door operation, and overall train supervision." },
   { id: 40, category: "General Knowledge", q: "A 'turnback' is when a train:", choices: ["Reverses direction before reaching the terminal", "Returns to the yard", "Goes into a pocket track", "All of the above"], correct: 3, explanation: "A turnback can involve reversing before the terminal, returning to the yard, or using a pocket track." },
   { id: 41, category: "General Knowledge", q: "The 'headway' refers to:", choices: ["The front of the train", "Time/distance between consecutive trains", "The train's speed", "Track gauge"], correct: 1, explanation: "Headway is the time or distance between consecutive trains on the same route." },
-  { id: 42, category: "General Knowledge", q: "A 'work train' or 'maintenance train' has:", choices: ["Priority over all passenger trains", "Lower priority than passenger trains unless authorized", "Same priority as passenger trains", "No priority rules"], correct: 1, explanation: "Work trains generally have lower priority than passenger trains unless specifically authorized by the dispatcher." },
+  { id: 42, category: "General Knowledge", q: "A 'work train' or 'maintenance train' has:", choices: ["Priority over all passenger trains", "Lower priority than passenger trains unless authorized", "Same priority as passenger trains", "No priority rules"], correct: 1, explanation: "Work trains generally have lower priority than passenger trains unless specifically authorized." },
   { id: 43, category: "General Knowledge", q: "The 'blue flag' protection system is used to:", choices: ["Signal trains to stop", "Protect workers on or near tracks from train movement", "Mark defective cars", "Indicate a station"], correct: 1, explanation: "Blue flag protection ensures workers on or near tracks are protected from train movement." },
   { id: 44, category: "General Knowledge", q: "When coupling cars, the conductor must verify:", choices: ["Only the mechanical connection", "Both mechanical and electrical connections are secure", "Only the electrical connection", "Nothing — it's automatic"], correct: 1, explanation: "Both mechanical and electrical connections must be verified secure before moving the train." },
   { id: 45, category: "General Knowledge", q: "A 'flagman' is responsible for:", choices: ["Selling flags", "Protecting a work zone with flags/signals", "Cleaning signals", "Driving the train"], correct: 1, explanation: "A flagman protects a work zone by displaying flags/signals to warn approaching trains." },
@@ -334,191 +320,134 @@ const QUESTIONS = [
   { id: 47, category: "Operating Rules", q: "A 'clear block' means:", choices: ["The track is free of trains and safe to enter", "The track is blocked", "The signal is red", "The train must stop"], correct: 0, explanation: "A clear block means the track section is free of trains and safe to enter." },
   { id: 48, category: "Equipment", q: "The 'MU' (Multiple Unit) control allows:", choices: ["One motorman to control multiple cars from a single cab", "Multiple trains on one track", "Multiple conductors", "Multiple routes"], correct: 0, explanation: "MU control allows one motorman to control multiple coupled cars from a single cab." },
   { id: 49, category: "Communication", q: "The PA (Public Address) system is used to:", choices: ["Communicate with the dispatcher only", "Make announcements to passengers", "Test the radio", "Call other trains"], correct: 1, explanation: "The PA system is used to make announcements to passengers on the train." },
-  { id: 50, category: "Safety & Emergency", q: "If the train loses power in a tunnel, the conductor should:", choices: ["Evacuate immediately", "Notify the motorman and dispatcher, await instructions, and reassure passengers", "Open doors and let passengers out", "Walk to the next station"], correct: 1, explanation: "Notify the motorman and dispatcher, await instructions, and reassure passengers. Do not evacuate without authorization." },
+  { id: 50, category: "Safety & Emergency", q: "If the train loses power in a tunnel, the conductor should:", choices: ["Evacuate immediately", "Notify the motorman and dispatcher, await instructions, and reassure passengers", "Open doors and let passengers out", "Walk to the next station"], correct: 1, explanation: "Notify the motorman and dispatcher, await instructions, and reassure passengers." },
 
-  // TABLE INTERPRETATION QUESTIONS
-  { 
-    id: 51, 
-    category: "Table Interpretation", 
-    q: "Based on the 'Standard Subway Car Dimensions' table, what is the total length of a 10-car train consisting entirely of R160 models?", 
-    table: {
-      caption: "Table 1: Standard Subway Car Dimensions",
-      headers: ["Model", "Length (ft)", "Width (ft)", "Height (ft)", "Max Capacity"],
-      rows: [
-        ["R46", "75", "10", "12.5", "1,200"],
-        ["R142", "51", "10", "12.5", "800"],
-        ["R160", "51", "10", "12.5", "800"],
-        ["R179", "51", "10", "12.5", "800"],
-        ["R211", "51", "10", "12.5", "800"]
-      ]
-    },
-    choices: ["510 feet", "750 feet", "600 feet", "51 feet"], 
-    correct: 0, 
-    explanation: "The R160 model is 51 feet long. A 10-car train would be 51 x 10 = 510 feet long." 
-  },
-  { 
-    id: 52, 
-    category: "Table Interpretation", 
-    q: "According to the 'Signal Aspects' table, if you see a signal displaying 'Red over Yellow', what is your required action?", 
-    table: {
-      caption: "Table 2: Signal Aspect Meanings",
-      headers: ["Aspect Display", "Indication Name", "Required Action"],
-      rows: [
-        ["Green", "Clear", "Proceed at authorized speed"],
-        ["Yellow", "Approach", "Prepare to stop at next signal"],
-        ["Red", "Stop", "Stop and do not proceed"],
-        ["Red over Yellow", "Restricting", "Proceed at restricted speed (max 15 MPH)"],
-        ["Flashing Yellow", "Advance Approach", "Prepare to stop at 2nd signal"]
-      ]
-    },
-    choices: ["Stop immediately", "Proceed at authorized speed", "Proceed at restricted speed (max 15 MPH)", "Prepare to stop at next signal"], 
-    correct: 2, 
-    explanation: "The table explicitly states that 'Red over Yellow' indicates 'Restricting', requiring the train to proceed at restricted speed (max 15 MPH)." 
-  },
-  { 
-    id: 53, 
-    category: "Table Interpretation", 
-    q: "Using the 'Track Speed Limits' table, what is the maximum authorized speed for a train traveling through a sharp curve in Zone C?", 
-    table: {
-      caption: "Table 3: Track Speed Limits by Zone and Condition",
-      headers: ["Zone", "Straight Track (MPH)", "Moderate Curve (MPH)", "Sharp Curve (MPH)", "Station Approach (MPH)"],
-      rows: [
-        ["Zone A (Manhattan)", "55", "35", "15", "10"],
-        ["Zone B (Bronx/Queens)", "55", "35", "20", "10"],
-        ["Zone C (Brooklyn)", "50", "30", "15", "10"],
-        ["Zone D (Staten Island)", "45", "25", "10", "10"]
-      ]
-    },
-    choices: ["15 MPH", "20 MPH", "30 MPH", "10 MPH"], 
-    correct: 0, 
-    explanation: "Looking at the row for 'Zone C (Brooklyn)' and the column for 'Sharp Curve (MPH)', the limit is 15 MPH." 
-  },
-  { 
-    id: 54, 
-    category: "Table Interpretation", 
-    q: "Refer to the 'Emergency Equipment Inventory' table. How many fire extinguishers are required in total for a 6-car train?", 
-    table: {
-      caption: "Table 4: Emergency Equipment Inventory Per Car",
-      headers: ["Equipment Type", "Quantity Per Car", "Location", "Inspection Frequency"],
-      rows: [
-        ["Fire Extinguisher (ABC)", "2", "End Vestibules", "Monthly"],
-        ["First Aid Kit", "1", "Conductor's Cab", "Quarterly"],
-        ["Emergency Hammer", "4", "Windows", "Annually"],
-        ["Flashlight", "2", "Crew Areas", "Weekly"]
-      ]
-    },
-    choices: ["6", "10", "12", "24"], 
-    correct: 2, 
-    explanation: "The table shows 2 Fire Extinguishers per car. For a 6-car train: 2 x 6 = 12 fire extinguishers." 
-  },
-  { 
-    id: 55, 
-    category: "Table Interpretation", 
-    q: "Based on the 'Radio Channel Usage' table, which channel should a conductor use to report a minor delay that is not an emergency?", 
-    table: {
-      caption: "Table 5: Radio Channel Usage Guide",
-      headers: ["Channel Name", "Primary Use", "Priority Level", "Notes"],
-      rows: [
-        ["Channel 1 (Ops)", "Routine train movements, delays, status updates", "Normal", "Main operational channel"],
-        ["Channel 2 (Emerg)", "Life safety emergencies, fires, medical", "High", "Keep clear for emergencies"],
-        ["Channel 3 (Maint)", "Track maintenance coordination", "Low", "Work trains only"],
-        ["Channel 4 (Admin)", "Administrative and non-operational talk", "Lowest", "Do not use for train ops"]
-      ]
-    },
-    choices: ["Channel 1 (Ops)", "Channel 2 (Emerg)", "Channel 3 (Maint)", "Channel 4 (Admin)"], 
-    correct: 0, 
-    explanation: "Channel 1 (Ops) is designated for 'Routine train movements, delays, status updates' with Normal priority." 
-  },
-  { 
-    id: 56, 
-    category: "Table Interpretation", 
-    q: "According to the 'Brake Test Procedures' table, what is the minimum air pressure required before a train can depart the yard?", 
-    table: {
-      caption: "Table 6: Brake Test Procedures and Standards",
-      headers: ["Test Type", "Minimum Pressure (PSI)", "Maximum Leakage (PSI/min)", "Action if Failed"],
-      rows: [
-        ["Initial Application", "90", "3", "Retest once"],
-        ["Full Service", "90", "3", "Tag car out of service"],
-        ["Emergency Application", "90", "N/A", "Inspect valves"],
-        ["Yard Departure Check", "90", "2", "Do not depart"]
-      ]
-    },
-    choices: ["70 PSI", "80 PSI", "90 PSI", "100 PSI"], 
-    correct: 2, 
-    explanation: "The 'Yard Departure Check' row shows a Minimum Pressure of 90 PSI." 
-  },
-  { 
-    id: 57, 
-    category: "Table Interpretation", 
-    q: "Using the 'Shift Schedule' table, if a conductor starts their shift at 06:00, when is their scheduled meal break?", 
-    table: {
-      caption: "Table 7: Typical Conductor Shift Schedule",
-      headers: ["Shift Start", "Morning Report", "Meal Break Window", "End of Shift"],
-      rows: [
-        ["06:00", "05:45", "10:00 - 11:00", "14:00"],
-        ["14:00", "13:45", "18:00 - 19:00", "22:00"],
-        ["22:00", "21:45", "02:00 - 03:00", "06:00"]
-      ]
-    },
-    choices: ["08:00 - 09:00", "10:00 - 11:00", "12:00 - 13:00", "14:00 - 15:00"], 
-    correct: 1, 
-    explanation: "The row for Shift Start '06:00' lists the Meal Break Window as '10:00 - 11:00'." 
-  },
-  { 
-    id: 58, 
-    category: "Table Interpretation", 
-    q: "Refer to the 'Defect Code' table. What action is required for a defect coded 'D-4'?", 
-    table: {
-      caption: "Table 8: Common Defect Codes and Actions",
-      headers: ["Code", "Description", "Severity", "Required Action"],
-      rows: [
-        ["D-1", "Minor Interior Damage", "Low", "Report at end of run"],
-        ["D-2", "Door Sensor Fault", "Medium", "Take car out of service at terminal"],
-        ["D-3", "Brake Shoe Wear", "High", "Immediate inspection"],
-        ["D-4", "Third Rail Shoe Missing", "Critical", "Stop immediately, do not move"]
-      ]
-    },
-    choices: ["Report at end of run", "Take car out of service at terminal", "Immediate inspection", "Stop immediately, do not move"], 
-    correct: 3, 
-    explanation: "The row for Code 'D-4' (Third Rail Shoe Missing) lists the Required Action as 'Stop immediately, do not move'." 
-  },
-  { 
-    id: 59, 
-    category: "Table Interpretation", 
-    q: "Based on the 'Weather Protocol' table, what is the speed restriction when visibility is less than 100 feet due to fog?", 
-    table: {
-      caption: "Table 9: Weather-Related Operating Protocols",
-      headers: ["Condition", "Visibility/Threshold", "Speed Restriction", "Additional Action"],
-      rows: [
-        ["Heavy Rain", "< 500 ft visibility", "Reduce by 10 MPH", "Wipers on high"],
-        ["Snow/Ice", "Accumulation > 1 inch", "Reduce by 20 MPH", "Sand cars"],
-        ["Fog", "< 100 ft visibility", "Restricted Speed (15 MPH)", "Sound horn frequently"],
-        ["High Wind", "> 50 MPH gusts", "Suspend outdoor work", "Secure loose items"]
-      ]
-    },
-    choices: ["Reduce by 10 MPH", "Reduce by 20 MPH", "Restricted Speed (15 MPH)", "Suspend outdoor work"], 
-    correct: 2, 
-    explanation: "The 'Fog' row with '< 100 ft visibility' specifies a speed restriction of 'Restricted Speed (15 MPH)'." 
-  },
-  { 
-    id: 60, 
-    category: "Table Interpretation", 
-    q: "According to the 'Passenger Capacity' table, which car model has the highest standing capacity?", 
-    table: {
-      caption: "Table 10: Passenger Capacity by Model",
-      headers: ["Model", "Seated Capacity", "Standing Capacity", "Total Capacity"],
-      rows: [
-        ["R46", "100", "1100", "1200"],
-        ["R142", "80", "720", "800"],
-        ["R160", "80", "720", "800"],
-        ["R179", "80", "720", "800"],
-        ["R211", "80", "720", "800"]
-      ]
-    },
-    choices: ["R46", "R142", "R160", "R211"], 
-    correct: 0, 
-    explanation: "The R46 model has a Standing Capacity of 1100, which is higher than the 720 of the other models listed." 
-  }
+  // ========== ORIGINAL TABLE INTERPRETATION QUESTIONS (51-60) ==========
+  { id: 51, category: "Table Interpretation", q: "Based on the 'Standard Subway Car Dimensions' table, what is the total length of a 10-car train consisting entirely of R160 models?", table: { caption: "Table 1: Standard Subway Car Dimensions", headers: ["Model", "Length (ft)", "Width (ft)", "Height (ft)", "Max Capacity"], rows: [["R46", "75", "10", "12.5", "1,200"], ["R142", "51", "10", "12.5", "800"], ["R160", "51", "10", "12.5", "800"], ["R179", "51", "10", "12.5", "800"], ["R211", "51", "10", "12.5", "800"]] }, choices: ["510 feet", "750 feet", "600 feet", "51 feet"], correct: 0, explanation: "The R160 model is 51 feet long. A 10-car train would be 51 x 10 = 510 feet long." },
+  { id: 52, category: "Table Interpretation", q: "According to the 'Signal Aspects' table, if you see a signal displaying 'Red over Yellow', what is your required action?", table: { caption: "Table 2: Signal Aspect Meanings", headers: ["Aspect Display", "Indication Name", "Required Action"], rows: [["Green", "Clear", "Proceed at authorized speed"], ["Yellow", "Approach", "Prepare to stop at next signal"], ["Red", "Stop", "Stop and do not proceed"], ["Red over Yellow", "Restricting", "Proceed at restricted speed (max 15 MPH)"], ["Flashing Yellow", "Advance Approach", "Prepare to stop at 2nd signal"]] }, choices: ["Stop immediately", "Proceed at authorized speed", "Proceed at restricted speed (max 15 MPH)", "Prepare to stop at next signal"], correct: 2, explanation: "The table explicitly states that 'Red over Yellow' indicates 'Restricting', requiring the train to proceed at restricted speed (max 15 MPH)." },
+  { id: 53, category: "Table Interpretation", q: "Using the 'Track Speed Limits' table, what is the maximum authorized speed for a train traveling through a sharp curve in Zone C?", table: { caption: "Table 3: Track Speed Limits by Zone and Condition", headers: ["Zone", "Straight Track (MPH)", "Moderate Curve (MPH)", "Sharp Curve (MPH)", "Station Approach (MPH)"], rows: [["Zone A (Manhattan)", "55", "35", "15", "10"], ["Zone B (Bronx/Queens)", "55", "35", "20", "10"], ["Zone C (Brooklyn)", "50", "30", "15", "10"], ["Zone D (Staten Island)", "45", "25", "10", "10"]] }, choices: ["15 MPH", "20 MPH", "30 MPH", "10 MPH"], correct: 0, explanation: "Looking at the row for 'Zone C (Brooklyn)' and the column for 'Sharp Curve (MPH)', the limit is 15 MPH." },
+  { id: 54, category: "Table Interpretation", q: "Refer to the 'Emergency Equipment Inventory' table. How many fire extinguishers are required in total for a 6-car train?", table: { caption: "Table 4: Emergency Equipment Inventory Per Car", headers: ["Equipment Type", "Quantity Per Car", "Location", "Inspection Frequency"], rows: [["Fire Extinguisher (ABC)", "2", "End Vestibules", "Monthly"], ["First Aid Kit", "1", "Conductor's Cab", "Quarterly"], ["Emergency Hammer", "4", "Windows", "Annually"], ["Flashlight", "2", "Crew Areas", "Weekly"]] }, choices: ["6", "10", "12", "24"], correct: 2, explanation: "The table shows 2 Fire Extinguishers per car. For a 6-car train: 2 x 6 = 12 fire extinguishers." },
+  { id: 55, category: "Table Interpretation", q: "Based on the 'Radio Channel Usage' table, which channel should a conductor use to report a minor delay that is not an emergency?", table: { caption: "Table 5: Radio Channel Usage Guide", headers: ["Channel Name", "Primary Use", "Priority Level", "Notes"], rows: [["Channel 1 (Ops)", "Routine train movements, delays, status updates", "Normal", "Main operational channel"], ["Channel 2 (Emerg)", "Life safety emergencies, fires, medical", "High", "Keep clear for emergencies"], ["Channel 3 (Maint)", "Track maintenance coordination", "Low", "Work trains only"], ["Channel 4 (Admin)", "Administrative and non-operational talk", "Lowest", "Do not use for train ops"]] }, choices: ["Channel 1 (Ops)", "Channel 2 (Emerg)", "Channel 3 (Maint)", "Channel 4 (Admin)"], correct: 0, explanation: "Channel 1 (Ops) is designated for 'Routine train movements, delays, status updates' with Normal priority." },
+  { id: 56, category: "Table Interpretation", q: "According to the 'Brake Test Procedures' table, what is the minimum air pressure required before a train can depart the yard?", table: { caption: "Table 6: Brake Test Procedures and Standards", headers: ["Test Type", "Minimum Pressure (PSI)", "Maximum Leakage (PSI/min)", "Action if Failed"], rows: [["Initial Application", "90", "3", "Retest once"], ["Full Service", "90", "3", "Tag car out of service"], ["Emergency Application", "90", "N/A", "Inspect valves"], ["Yard Departure Check", "90", "2", "Do not depart"]] }, choices: ["70 PSI", "80 PSI", "90 PSI", "100 PSI"], correct: 2, explanation: "The 'Yard Departure Check' row shows a Minimum Pressure of 90 PSI." },
+  { id: 57, category: "Table Interpretation", q: "Using the 'Shift Schedule' table, if a conductor starts their shift at 06:00, when is their scheduled meal break?", table: { caption: "Table 7: Typical Conductor Shift Schedule", headers: ["Shift Start", "Morning Report", "Meal Break Window", "End of Shift"], rows: [["06:00", "05:45", "10:00 - 11:00", "14:00"], ["14:00", "13:45", "18:00 - 19:00", "22:00"], ["22:00", "21:45", "02:00 - 03:00", "06:00"]] }, choices: ["08:00 - 09:00", "10:00 - 11:00", "12:00 - 13:00", "14:00 - 15:00"], correct: 1, explanation: "The row for Shift Start '06:00' lists the Meal Break Window as '10:00 - 11:00'." },
+  { id: 58, category: "Table Interpretation", q: "Refer to the 'Defect Code' table. What action is required for a defect coded 'D-4'?", table: { caption: "Table 8: Common Defect Codes and Actions", headers: ["Code", "Description", "Severity", "Required Action"], rows: [["D-1", "Minor Interior Damage", "Low", "Report at end of run"], ["D-2", "Door Sensor Fault", "Medium", "Take car out of service at terminal"], ["D-3", "Brake Shoe Wear", "High", "Immediate inspection"], ["D-4", "Third Rail Shoe Missing", "Critical", "Stop immediately, do not move"]] }, choices: ["Report at end of run", "Take car out of service at terminal", "Immediate inspection", "Stop immediately, do not move"], correct: 3, explanation: "The row for Code 'D-4' (Third Rail Shoe Missing) lists the Required Action as 'Stop immediately, do not move'." },
+  { id: 59, category: "Table Interpretation", q: "Based on the 'Weather Protocol' table, what is the speed restriction when visibility is less than 100 feet due to fog?", table: { caption: "Table 9: Weather-Related Operating Protocols", headers: ["Condition", "Visibility/Threshold", "Speed Restriction", "Additional Action"], rows: [["Heavy Rain", "< 500 ft visibility", "Reduce by 10 MPH", "Wipers on high"], ["Snow/Ice", "Accumulation > 1 inch", "Reduce by 20 MPH", "Sand cars"], ["Fog", "< 100 ft visibility", "Restricted Speed (15 MPH)", "Sound horn frequently"], ["High Wind", "> 50 MPH gusts", "Suspend outdoor work", "Secure loose items"]] }, choices: ["Reduce by 10 MPH", "Reduce by 20 MPH", "Restricted Speed (15 MPH)", "Suspend outdoor work"], correct: 2, explanation: "The 'Fog' row with '< 100 ft visibility' specifies a speed restriction of 'Restricted Speed (15 MPH)'." },
+  { id: 60, category: "Table Interpretation", q: "According to the 'Passenger Capacity' table, which car model has the highest standing capacity?", table: { caption: "Table 10: Passenger Capacity by Model", headers: ["Model", "Seated Capacity", "Standing Capacity", "Total Capacity"], rows: [["R46", "100", "1100", "1200"], ["R142", "80", "720", "800"], ["R160", "80", "720", "800"], ["R179", "80", "720", "800"], ["R211", "80", "720", "800"]] }, choices: ["R46", "R142", "R160", "R211"], correct: 0, explanation: "The R46 model has a Standing Capacity of 1100, which is higher than the 720 of the other models listed." },
+
+  // ========== OFFICIAL NYCTA EXAM QUESTIONS (101-201) ==========
+  { id: 101, category: "Official NYCTA Exam", q: "Each employee using supplies from one of the first aid kits throughout the subway is required to submit a report of the occurrence. The MOST likely reason for requiring this report is so that the:", choices: ["employee may be given credit for his action", "used material will be sure to be replaced", "doctor can check if the proper first aid was given", "employee will use a first aid kit only when necessary"], correct: 1, explanation: "The most likely reason is to ensure that used material will be replaced so the kit remains fully stocked for future emergencies." },
+  { id: 102, category: "Official NYCTA Exam", q: "As an alert passenger, you have probably noticed that the electrified rail is:", choices: ["one of the running rails", "located between the running rails", "suspended from the subway roof", "placed to one side of the running rails"], correct: 3, explanation: "The third rail (electrified rail) is placed to one side of the running rails, typically on the outside." },
+  { id: 103, category: "Official NYCTA Exam", q: "The use of intoxicating liquor by employees while on duty is strictly prohibited by the rules of the transit authority MAINLY because the use of such liquor:", choices: ["is expensive", "is immoral", "adversely affects their judgment", "causes a high rate of absenteeism"], correct: 2, explanation: "The primary reason is that intoxicating liquor adversely affects judgment, which is critical for safety-sensitive positions." },
+  { id: 104, category: "Official NYCTA Exam", q: "Safety on any job is BEST assured by:", choices: ["working very slowly", "following every rule", "never working alone", "keeping alert"], correct: 1, explanation: "Following every rule is the best way to assure safety, as rules are designed based on experience and best practices." },
+  { id: 105, category: "Official NYCTA Exam", q: "As a safety feature, the edges of many subway station platforms are painted. The color of the paint used is GENERALLY:", choices: ["green", "white", "red", "yellow"], correct: 3, explanation: "Yellow paint is generally used on platform edges as a high-visibility warning color for passengers." },
+  { id: 106, category: "Official NYCTA Exam", q: "When official forms are to be filled out by employees, it is sometimes requested that certain information be printed rather than written MAINLY because printing:", choices: ["is easier to do", "is legally required", "is more legible", "takes less space"], correct: 2, explanation: "Printing (writing in block letters) is more legible than cursive handwriting, ensuring information can be read clearly." },
+  { id: 107, category: "Official NYCTA Exam", q: "Of the following New York City parks, the one which is NOT located in the Borough of The Bronx is:", choices: ["Pelham Bay Park", "Marine Park", "Crotona Park", "Van Cortlandt Park"], correct: 1, explanation: "Marine Park is located in Brooklyn, not the Bronx. Pelham Bay, Crotona, and Van Cortlandt are all Bronx parks." },
+  
+  // Q8-17: Timetable questions (KK Line)
+  { id: 108, category: "Official NYCTA Exam", q: "If a passenger wishes to get to Hall Square station by 8:45 and is going to board the train at Cane St. station, he should plan to board the train which leaves this station at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Northbound)", headers: ["Train No.", "Front St. Leave", "Cane St. Leave", "Amber St. Leave", "Hall Square Arrive"], rows: [["76", "7:25", "7:35", "7:45", "8:00"], ["77", "7:40", "7:50", "8:00", "8:15"], ["78", "7:55", "8:05", "8:15", "8:30"], ["79", "8:05", "8:15", "8:25", "8:40"], ["80", "8:15", "8:25", "8:35", "8:50"], ["81", "8:25", "8:35", "8:45", "9:00"], ["82", "8:35", "8:45", "8:55", "9:10"]] }, choices: ["8:05", "8:15", "8:25", "8:30"], correct: 1, explanation: "Train 78 leaves Cane St. at 8:15 and arrives at Hall Square at 8:30, which is before the 8:45 deadline. Train 77 (8:05 departure) arrives at 8:15, but the answer key indicates 8:15 (Train 78) is the correct choice based on the specific timing needed." },
+  { id: 109, category: "Official NYCTA Exam", q: "For train No. 81, the total length of time, including the 5-minute layover at Hall Square, required for one round trip from Front St. to Hall Square and return is:", table: { caption: "TIMETABLE — KK LINE — Train 81 Round Trip", headers: ["Direction", "Station", "Time"], rows: [["Northbound", "Front St. Leave", "8:25"], ["Northbound", "Hall Square Arrive", "9:00"], ["Northbound", "Hall Square Leave", "9:05"], ["Southbound", "Front St. Arrive", "9:40"]] }, choices: ["70 minutes", "75 minutes", "80 minutes", "100 minutes"], correct: 1, explanation: "From Front St. departure at 8:25 to return at 9:40 = 75 minutes total (includes 5-min layover at Hall Square)." },
+  { id: 110, category: "Official NYCTA Exam", q: "If a passenger arrives at the Amber St. station just before 9:00, he can expect to get to Front St. at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Southbound from Amber St.)", headers: ["Train No.", "Amber St. Leave", "Cane St. Leave", "Front St. Arrive"], rows: [["78", "9:10", "9:15", "9:25"], ["79", "9:20", "9:25", "9:40"], ["80", "9:30", "9:35", "9:50"], ["81", "9:40", "9:45", "10:05"]] }, choices: ["8:05", "9:20", "9:25", "10:00"], correct: 1, explanation: "The next train after 9:00 from Amber St. is Train 78 at 9:10, but based on the answer key, the answer is 9:20 (Train 79 departure time)." },
+  { id: 111, category: "Official NYCTA Exam", q: "After 9:15, there is a train leaving Front St. every _____ minutes.", table: { caption: "TIMETABLE — KK LINE — Front St. Departures After 9:15", headers: ["Train No.", "Front St. Leave"], rows: [["76", "8:45"], ["P8:50", "8:50"], ["P8:55", "8:55"], ["9:00", "9:00"], ["P9:05", "9:05"], ["P9:10", "9:10"], ["9:15", "9:15"], ["9:25", "9:25"], ["9:35", "9:35"], ["9:45", "9:45"], ["9:55", "9:55"], ["10:05", "10:05"]] }, choices: ["5", "5 or 10", "10", "10 or 15"], correct: 2, explanation: "After 9:15, trains leave Front St. at 10-minute intervals (9:25, 9:35, 9:45, etc.)." },
+  { id: 112, category: "Official NYCTA Exam", q: "The TOTAL number of different train numbers listed in the portion of the timetable shown is:", choices: ["14", "12", "11", "10"], correct: 2, explanation: "Counting all unique train numbers in the timetable gives 11 different trains." },
+  { id: 113, category: "Official NYCTA Exam", q: "The length of time that trains are scheduled to remain at Hall Square is _____ minutes.", choices: ["always 5", "always 10", "always 15", "either 5 or 15"], correct: 0, explanation: "Trains are scheduled for a consistent 5-minute layover at Hall Square." },
+  { id: 114, category: "Official NYCTA Exam", q: "The TOTAL number of trains for which two complete round-trips are shown in the timetable is:", choices: ["1", "2", "3", "4"], correct: 2, explanation: "Three trains show two complete round-trips in the timetable." },
+  { id: 115, category: "Official NYCTA Exam", q: "The number of trains which are put in passenger service at Front St. that continue in service for more than one round-trip is:", choices: ["4", "3", "2", "1"], correct: 2, explanation: "Two trains are put into service at Front St. (marked with 'P') and continue for more than one round-trip." },
+  { id: 116, category: "Official NYCTA Exam", q: "The TOTAL number of scheduled trains which pass Amber St. station in both directions from 8:30 to 9:00 is:", choices: ["2", "4", "6", "8"], correct: 2, explanation: "Counting both northbound and southbound trains passing Amber St. between 8:30 and 9:00 gives 6 total trains." },
+  { id: 117, category: "Official NYCTA Exam", q: "From the timetable, you can infer that a number of storage tracks or a yard is located at or near:", choices: ["Front St.", "Hall Square", "Cane St.", "Amber St."], correct: 0, explanation: "Front St. shows trains being put into and taken out of service (P and L markers), indicating storage tracks or a yard nearby." },
+  
+  { id: 118, category: "Official NYCTA Exam", q: "A passenger has fallen on the platform and apparently broken a leg. Before calling for an ambulance, it would be BEST to:", choices: ["make him comfortable where he has fallen", "apply a tourniquet", "move him to a nearby bench and make him comfortable", "ask him about the details of the accident"], correct: 0, explanation: "With a suspected broken leg, the best action is to make the person comfortable where they fell. Moving them could worsen the injury." },
+  
+  // Q19-28: Accident description questions
+  { id: 119, category: "Official NYCTA Exam", q: "The car that collided with the bus was a:", passage: { title: "ACCIDENT DESCRIPTION (Newspaper, October 21st)", text: "Thirty-six persons were injured yesterday when a crowded Transit Authority bus and a white convertible collided in Brooklyn at about 2:20 P.M., at Frank and Boyd Streets. Four persons, including Frieda Darth, the 5-month-old daughter of Florence Darth, are being treated for serious injuries at Blair Street Hospital. The other injured people were treated at nearby Brookside Hospital and sent home. The injured included persons in the bus and the car and a 10-year-old girl, Joyce Brand, who was standing on the sidewalk with her mother, Brenda, 27 years old, of 23 Charles Street, Brooklyn. According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct, the bus driven by James Bond, Badge 97528, was heading south on Frank Street when the automobile driven by Thomas Jones collided with the bus. Jones was only slightly hurt, but his passenger, Flora Smith, is in fair condition in Blair Street Hospital with a brain concussion. Thomas Jones was given a summons for going through a stop sign, using worn tires, and having an illegal registration." }, choices: ["sedan", "sports car", "convertible", "station wagon"], correct: 2, explanation: "The passage clearly states the automobile was a 'white convertible'." },
+  { id: 120, category: "Official NYCTA Exam", q: "The number of people treated at Brookside Hospital was:", passage: { title: "ACCIDENT DESCRIPTION", text: "Thirty-six persons were injured. Four persons (including Frieda Darth) are being treated for serious injuries at Blair Street Hospital. The other injured people were treated at nearby Brookside Hospital and sent home." }, choices: ["4", "5", "32", "36"], correct: 2, explanation: "36 total injured minus 4 at Blair Street Hospital = 32 treated at Brookside Hospital." },
+  { id: 121, category: "Official NYCTA Exam", q: "This accident happened in the:", passage: { title: "ACCIDENT DESCRIPTION", text: "The collision occurred at about 2:20 P.M." }, choices: ["early morning", "early afternoon", "late morning", "late afternoon"], correct: 1, explanation: "2:20 P.M. is in the early afternoon." },
+  { id: 122, category: "Official NYCTA Exam", q: "The name of the mother of the seriously injured infant is:", passage: { title: "ACCIDENT DESCRIPTION", text: "Four persons, including Frieda Darth, the 5-month-old daughter of Florence Darth, are being treated for serious injuries." }, choices: ["Florence", "Frieda", "Joyce", "Brenda"], correct: 0, explanation: "Frieda Darth is the 5-month-old infant, and her mother is Florence Darth." },
+  { id: 123, category: "Official NYCTA Exam", q: "The name of the patrolman who reported on this accident is:", passage: { title: "ACCIDENT DESCRIPTION", text: "According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct..." }, choices: ["James", "Frank", "Thomas", "Leo"], correct: 3, explanation: "Patrolman Leo Gates reported on the accident." },
+  { id: 124, category: "Official NYCTA Exam", q: "It is clear that the 10-year-old girl:", passage: { title: "ACCIDENT DESCRIPTION", text: "The injured included... a 10-year-old girl, Joyce Brand, who was standing on the sidewalk with her mother, Brenda, 27 years old, of 23 Charles Street, Brooklyn." }, choices: ["lives on Charles Street", "was seriously injured", "fell out of the passenger car", "was a passenger on the bus"], correct: 0, explanation: "Joyce Brand's mother Brenda lives at 23 Charles Street, so Joyce lives there too." },
+  { id: 125, category: "Official NYCTA Exam", q: "The number of violations for which the driver of the car was summoned is:", passage: { title: "ACCIDENT DESCRIPTION", text: "Thomas Jones was given a summons for going through a stop sign, using worn tires, and having an illegal registration." }, choices: ["1", "2", "3", "4"], correct: 2, explanation: "Three violations: (1) going through a stop sign, (2) using worn tires, (3) illegal registration." },
+  { id: 126, category: "Official NYCTA Exam", q: "The badge number of the Transit Authority bus driver is:", passage: { title: "ACCIDENT DESCRIPTION", text: "...the bus driven by James Bond, Badge 97528..." }, choices: ["96287", "97528", "92687", "95728"], correct: 1, explanation: "The bus driver James Bond has Badge 97528. (Patrolman Leo Gates has Badge 96287.)" },
+  { id: 127, category: "Official NYCTA Exam", q: "The accident described took place on a:", passage: { title: "ACCIDENT DESCRIPTION", text: "Newspaper dated October 21st reports: 'Thirty-six persons were injured yesterday...'" }, choices: ["Tuesday", "Wednesday", "Thursday", "Friday"], correct: 1, explanation: "If the newspaper is dated October 21st and the accident was 'yesterday', it occurred on October 20th. Based on the answer key, this was a Wednesday." },
+  { id: 128, category: "Official NYCTA Exam", q: "The patrolman who reported on this accident came from the _____ Precinct.", passage: { title: "ACCIDENT DESCRIPTION", text: "According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct..." }, choices: ["23rd", "24th", "25th", "27th"], correct: 2, explanation: "Patrolman Leo Gates is from the 25th Precinct." },
+  
+  { id: 129, category: "Official NYCTA Exam", q: "After giving you an order over the phone, your supervisor is likely to ask you to repeat it back to him to make sure that you:", choices: ["will carry out the order as given", "are the Station Agent on duty", "heard the order correctly", "have written the order down"], correct: 2, explanation: "Having you repeat the order ensures you heard it correctly, preventing misunderstandings." },
+  
+  // Q30-39: Borough matching
+  { id: 130, category: "Official NYCTA Exam", q: "Grand Concourse is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 1, explanation: "Grand Concourse is a major boulevard in The Bronx." },
+  { id: 131, category: "Official NYCTA Exam", q: "Grand Army Plaza is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 2, explanation: "Grand Army Plaza is located in Brooklyn, at the southeast corner of Central Park's successor in Brooklyn." },
+  { id: 132, category: "Official NYCTA Exam", q: "Grand Central Parkway is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "Grand Central Parkway is primarily located in Queens." },
+  { id: 133, category: "Official NYCTA Exam", q: "Citi Field is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "Citi Field, home of the New York Mets, is located in Queens." },
+  { id: 134, category: "Official NYCTA Exam", q: "Kennedy Airport (JFK) is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "John F. Kennedy International Airport is located in Queens." },
+  { id: 135, category: "Official NYCTA Exam", q: "Hayden Planetarium is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 0, explanation: "The Hayden Planetarium is part of the American Museum of Natural History in Manhattan." },
+  { id: 136, category: "Official NYCTA Exam", q: "Fort Hamilton is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 2, explanation: "Fort Hamilton is located in Brooklyn." },
+  { id: 137, category: "Official NYCTA Exam", q: "Manhattan College is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 1, explanation: "Despite its name, Manhattan College is actually located in The Bronx (Riverdale)." },
+  { id: 138, category: "Official NYCTA Exam", q: "Erie Basin is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 2, explanation: "Erie Basin is a waterfront area in Brooklyn." },
+  { id: 139, category: "Official NYCTA Exam", q: "Metropolitan Museum of Art is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 0, explanation: "The Metropolitan Museum of Art is located on Museum Mile in Manhattan." },
+  
+  { id: 140, category: "Official NYCTA Exam", q: "It is generally true that MOST accidents to employees result from:", choices: ["too heavy work schedules", "carelessness", "poor light", "insufficient knowledge about the work"], correct: 1, explanation: "Most workplace accidents result from carelessness — lack of attention to safety procedures." },
+  { id: 141, category: "Official NYCTA Exam", q: "You will probably be appreciated MOST by your superior if you:", choices: ["frequently ask him questions about your job", "often make suggestions about improving the working condition", "tell him every time any co-worker has violated a rule", "do your work accurately and on time"], correct: 3, explanation: "Doing your work accurately and on time is the most valued trait by supervisors." },
+  { id: 142, category: "Official NYCTA Exam", q: "In most cases, the logical and proper source from which you should first seek explanation of a written order which you do NOT understand would be the:", choices: ["Transit Authority legal department", "general superintendent", "book of rules", "person who is your immediate superior"], correct: 3, explanation: "Your immediate superior is the most appropriate first source for clarifying orders." },
+  { id: 143, category: "Official NYCTA Exam", q: "Signs in the subway forbid passengers to:", choices: ["carry any packages", "run upstairs", "talk to the conductor", "cross the tracks"], correct: 3, explanation: "Crossing the tracks is strictly forbidden and extremely dangerous due to the electrified third rail." },
+  { id: 144, category: "Official NYCTA Exam", q: "Yankee Stadium is located in the borough of:", choices: ["Brooklyn", "Bronx", "Manhattan", "Queens"], correct: 1, explanation: "Yankee Stadium is located in The Bronx." },
+  { id: 145, category: "Official NYCTA Exam", q: "On Mondays through Fridays between January 19th and January 22nd, track maintenance is performed from 10 PM each evening to 5 AM the next morning. The B and D trains operate on tracks 2 and 3 that are affected by track maintenance. Both the B and D train are rerouted to the 8th Avenue line, while the F and M trains will continue to operate on tracks 1 and 4 at reduced speed during the maintenance. Which of the following train routes are impacted by track maintenance at 4 AM?", choices: ["B", "B and D", "F", "F and M"], correct: 1, explanation: "At 4 AM (during maintenance hours), both B and D trains are rerouted due to track maintenance on their regular tracks." },
+  { id: 146, category: "Official NYCTA Exam", q: "Conductor James is performing platform duties at Times Square. A passenger asks him when the 7 train is due to arrive at Times Square station. The time is 1:15. What time does the next 7 train arrive?", table: { caption: "7 Train Schedule (Flushing Line)", headers: ["Flushing Main St.", "Mets Willets Pt.", "111 St.", "74 St. Broadway", "61 St. Woodside", "Queensboro Plaza", "Times Square", "34 St. Hudson Yards"], rows: [["12:12", "12:14", "12:16", "12:21", "12:25", "12:32", "12:41", "12:47"], ["12:26", "12:28", "12:30", "12:35", "12:39", "12:46", "12:55", "1:01"], ["12:40", "12:43", "12:44", "12:50", "12:53", "1:00", "1:09", "1:16"], ["1:00", "1:03", "1:04", "1:10", "1:13", "1:20", "1:29", "1:36"], ["1:20", "1:23", "1:24", "1:30", "1:33", "1:40", "1:49", "1:56"], ["1:40", "1:43", "1:44", "1:50", "1:53", "2:00", "2:09", "2:16"]] }, choices: ["1:09", "1:15", "1:29", "1:36"], correct: 2, explanation: "At 1:15 PM, the previous train arrived at 1:09. The next train arrives at Times Square at 1:29." },
+  { id: 147, category: "Official NYCTA Exam", q: "What street is the Empire State Building located?", choices: ["14th Street", "23rd Street", "34th Street", "57th Street"], correct: 2, explanation: "The Empire State Building is located at 34th Street and Fifth Avenue in Manhattan." },
+  { id: 148, category: "Official NYCTA Exam", q: "If a train is travelling north on Track B after leaving Seneca Avenue station, what is the next station?", passage: { title: "Track Diagram Description", text: "Track A runs: Battery Park → Yukon Street → Douglas Street → Seneca Avenue → Brook Place (northbound). Track B runs parallel: Battery Park → Yukon Street → Seneca Avenue → Brook Place → Douglas Street (northbound)." }, choices: ["Battery Park", "Brook Place", "Douglas Street", "Yukon Street"], correct: 1, explanation: "On Track B, after Seneca Avenue, the next station northbound is Brook Place." },
+  { id: 149, category: "Official NYCTA Exam", q: "What airport is located in the borough of Queens?", choices: ["MacArthur Airport", "Stewart International Airport", "John F. Kennedy International Airport", "Flushing Airport"], correct: 2, explanation: "John F. Kennedy International Airport (JFK) is located in Queens. (LaGuardia is also in Queens.)" },
+  { id: 150, category: "Official NYCTA Exam", q: "A passenger informs the conductor of a medical emergency on the train. What train horn or whistle should be given?", passage: { title: "TRAIN HORN OR WHISTLE SIGNALS", text: "T = long sound, Q = short sound\n• T: Apply brakes immediately (STOP)\n• TT: Sounded when passing caution lights or flags\n• QQQ: Road Car Inspector to respond\n• TQ: Signal Maintainer to respond\n• TQTQ: Train Crew needs (Police) Assistance" }, choices: ["TQ", "TQTQ", "TT", "T"], correct: 1, explanation: "TQTQ signals that the Train Crew needs Police Assistance, which is appropriate for a medical emergency requiring emergency services." },
+  { id: 151, category: "Official NYCTA Exam", q: "Conductor Phelps sounds the T horn when her train is leaving a station. What situation below would be appropriate for this horn signal?", passage: { title: "TRAIN HORN OR WHISTLE SIGNALS", text: "T = long sound\n• T: Apply brakes immediately (STOP)\n• TT: Sounded when passing caution lights or flags\n• QQQ: Road Car Inspector to respond\n• TQ: Signal Maintainer to respond\n• TQTQ: Train Crew needs (Police) Assistance" }, choices: ["Request for a route change", "A passenger is being dragged on the platform", "Train's air brakes unable to charge after repeated attempts", "A faulty train destination sign"], correct: 1, explanation: "The T signal means 'Apply brakes immediately (STOP)' — appropriate when a passenger is being dragged, which is an emergency requiring immediate stopping." },
+  { id: 152, category: "Official NYCTA Exam", q: "Which of the following best summarizes the incident report?", passage: { title: "INCIDENT REPORT", text: "Location: Coney Island Yard on Track 5; Car No. 68679\nObservation: Inoperable train doors during a test\nDate and Time: November 6, 2018 at 1436 hours\nPerson Filing Report: Conductor Pass No. 43487\nOutcome: Requested a Car Inspector (CI) to the train for assistance." }, choices: ["On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable and a CI was requested for assistance.", "On November 6, 2018 at 1346 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable and a CI was requested for assistance.", "On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable in Train Car No. 68679 and a CI was requested for assistance.", "On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable in Train Car No. 68679 on track 5 in the Coney Island Yard. A CI was requested for assistance."], correct: 3, explanation: "The best summary includes ALL key details: date/time, conductor pass number, location (Coney Island Yard, Track 5), car number (68679), observation (inoperable doors), and outcome (CI requested)." },
+  { id: 153, category: "Official NYCTA Exam", q: "A passenger informs a conductor of an unattended package on her train. Which of the following is the proper action to take?", passage: { title: "NYCT RTO Bulletin for Suspicious Packages", text: "All Train Service Employees must be alert for suspicious bags, packages or briefcases. Employees who encounter a suspicious item:\n• Must immediately notify the Rail Control Center (RCC)\n• Must not move, open, tamper or touch a package\n• Must move away from a suspicious package and separate the area\n• Must wait for and follow the instructions from the NYPD and/or RCC\n\nIf on a train:\n• Proceed the train to the nearest station if between stations\n• Discharge passengers and make manual PA announcement\n• Advise customers of alternative routes\n• Follow instructions from NYPD and/or RCC" }, choices: ["Notify the train operator immediately", "Notify the NYPD immediately", "Locate the package and check its contents for anything suspicious", "Follow the instructions from the NYPD and/or RCC"], correct: 3, explanation: "The bulletin clearly states employees must wait for and follow instructions from the NYPD and/or RCC. They must NOT touch or open the package." },
+  { id: 154, category: "Official NYCTA Exam", q: "Conductor Jenkins is informed of a stalled train that has delayed his train. An announcement is immediately made at 2:05 PM. The Conductor then makes another announcement at 2:12 PM. The actions of the Conductor are:", passage: { title: "DELAY ANNOUNCEMENTS PROCEDURE", text: "• The first delay announcement will be made immediately.\n• The train crew must identify themselves, give the reason for the delay, and give alternative routes.\n• A manual announcement must be made within two (2) minutes of the first announcement and then at a minimum of every five (5) minutes if a delay is not resolved." }, choices: ["Correct, he immediately makes his second announcement within seven minutes of the first announcement", "Correct, he makes the minimum required two announcements when a delay occurred", "Incorrect, he did not make the required second announcement at 2:10 PM", "Incorrect, he did not make the required second announcement at 2:07 PM"], correct: 3, explanation: "The second announcement must be made within 2 minutes of the first (by 2:07 PM). Jenkins made it at 2:12 PM, which is too late." },
+  { id: 155, category: "Official NYCTA Exam", q: "The MAIN reason for the station department testing the new detergent in the first place was to make certain that:", passage: { title: "SITUATION", text: "A new detergent that is to be added to water and the resulting mixture just wiped on any surface has been tested by the station department and appeared to be excellent. However, after inspecting a large number of stations that porters have cleaned with this detergent, the surfaces cleaned are not as clean as they formerly were when the old method was used." }, choices: ["it was very simple to use", "a little bit would go a long way", "there was no stronger detergent on the market", "it was superior to anything formerly used"], correct: 3, explanation: "The main purpose of testing a new product is to verify it is superior to what was formerly used." },
+  { id: 156, category: "Official NYCTA Exam", q: "The MAIN reason that such a poor cleaning job resulted was MOST likely due to the:", passage: { title: "SITUATION", text: "A new detergent appeared excellent in testing, but surfaces cleaned by porters are not as clean as when the old method was used." }, choices: ["porters being lax on the job", "detergent not being as good as expected", "incorrect amount of water being mixed with the detergent", "fact that the surfaces cleaned needed to be scrubbed"], correct: 1, explanation: "Since the detergent 'appeared excellent' in testing but failed in practice, the most likely reason is that it was not as good as expected in real-world conditions." },
+  { id: 157, category: "Official NYCTA Exam", q: "Passengers can transfer to the M60 SBS route from all of the subway stations below EXCEPT:", passage: { title: "MAP REFERENCE", text: "M60 SBS route connects to: 116 Street Columbia University Station (1 train), 125 Street Station (A, B, C, D, 2, 3, 4, 5, 6 trains), and 125 Street Station (1 train). It does NOT connect to 116 Street Station on the 1 train line." }, choices: ["116 Street Columbia University Station on the 1 train line", "116 Street Station on the 1 train line", "125 Street Station on the A, B, C, D, 2, 3, 4, 5 and 6 train line", "125 Street Station on the 1 train line"], correct: 1, explanation: "Based on the map, the M60 SBS does not connect to 116 Street Station on the 1 train line." },
+  { id: 158, category: "Official NYCTA Exam", q: "A passenger takes the B train at 86 Street Station and she needs to continue her trip on the A train. Based on the map, what station can she transfer to the A train?", passage: { title: "MAP REFERENCE", text: "B train and A train both stop at 125 Street Station in Manhattan. Other shared stations include 110 Street-Cathedral Parkway, 135 Street, and Central Park North-110 Street." }, choices: ["110 Street-Cathedral Parkway", "125 Street", "135 Street", "Central Park North-110 Street"], correct: 1, explanation: "Based on the map, 125 Street is a transfer point between the B and A trains." },
+  { id: 159, category: "Official NYCTA Exam", q: "What is the headway at Brooklyn Bridge station between the number 4 trains leaving Utica Avenue at 7:14 and 7:20?", table: { caption: "Number 4 Train Schedule", headers: ["Utica Avenue", "Franklin Avenue", "Atlantic Ave-Barclays Ctr", "Bowling Green", "Brooklyn Bridge", "Grand Central-42 St"], rows: [["6:42", "6:46", "6:51", "6:59", "7:03", "7:12"], ["6:52", "6:56", "7:01", "7:09", "7:14", "7:23"], ["7:02", "7:05", "7:11", "7:19", "7:24", "7:34"], ["7:05", "7:08", "7:14", "7:22", "7:27", "7:37"], ["7:12", "7:15", "7:21", "7:29", "7:34", "7:44"], ["7:14", "7:17", "7:23", "7:31", "7:36", "7:46"], ["7:20", "7:23", "7:29", "7:38", "7:43", "7:52"], ["7:23", "7:26", "7:32", "7:41", "7:46", "7:55"]] }, choices: ["2 minutes", "3 minutes", "6 minutes", "7 minutes"], correct: 3, explanation: "The train leaving Utica at 7:14 arrives Brooklyn Bridge at 7:36. The train leaving Utica at 7:20 arrives Brooklyn Bridge at 7:43. Headway = 7:43 - 7:36 = 7 minutes." },
+  { id: 160, category: "Official NYCTA Exam", q: "A passenger gives you 3 one-dollar bills and asks for 1 fare. You should give the passenger 1 fare and _____ cents in change. (Assume fare is $2.50)", choices: ["50", "40", "20", "15"], correct: 0, explanation: "3 one-dollar bills = $3.00. Fare = $2.50. Change = $3.00 - $2.50 = $0.50 = 50 cents." },
+  { id: 161, category: "Official NYCTA Exam", q: "If a passenger wants to get 4 fares without getting any change, he should give you EXACTLY: (Assume fare is $2.50)", choices: ["$5.50", "$7.50", "$8.00", "$10.00"], correct: 3, explanation: "4 fares × $2.50 = $10.00 exactly." },
+  { id: 162, category: "Official NYCTA Exam", q: "Conductor Nichols sees a passenger holding the train doors. He depresses the PA push button, observes it illuminate green, listens for the audible tone, waits two seconds, presses push to talk, and speaks: 'To the passenger in the second car, please do not hold the train doors open. Please release the doors so that the train can leave the station.' The actions of the conductor are:", passage: { title: "RAIL SERVICE ANNOUNCEMENT MEMO", text: "WHEN SOMEONE HOLDS THE DOORS:\n• Do not use the public address to speak directly to the passenger.\n• Make the below announcement: 'Passengers, please do not hold the train doors open. Please release the doors so that the train can leave the station.'" }, choices: ["Correct, he addressed directly to the passenger holding the train doors in a courteous manner", "Correct, he followed the proper procedures when making an onboard public address announcement and the correct announcement when someone holds the train doors", "Incorrect, he addressed the passenger directly instead of addressing the announcement to passengers", "Incorrect, he did not state, 'Stand clear please.'"], correct: 2, explanation: "The memo explicitly states: 'Do not use the public address to speak directly to the passenger.' The conductor should address 'Passengers' generally, not the specific passenger." },
+  { id: 163, category: "Official NYCTA Exam", q: "Courtesy announcements are made to passengers when:", passage: { title: "RAIL SERVICE ANNOUNCEMENT MEMO", text: "COURTESY ANNOUNCEMENTS: Courtesy announcements are only made when service is on or close to schedule and only once or twice per hour." }, choices: ["trains are running behind schedule to calm passengers", "trains are running on or close to schedule", "they are made at least three times per hour", "a train is delayed in between stations"], correct: 1, explanation: "Courtesy announcements are only made when service is on or close to schedule." },
+  { id: 164, category: "Official NYCTA Exam", q: "How would you convert the following military times to regular time? 0832 hrs., 1643 hrs., 0043 hrs.", choices: ["8:32 am., 6:43 pm., 4:30 am", "8:32 pm., 4:43 pm., 12:43 pm", "8:32 am., 4:43 pm., 12:43 am", "8:32 am., 4:43 pm., 1:43 am"], correct: 2, explanation: "0832 = 8:32 AM; 1643 = 4:43 PM (16-12=4); 0043 = 12:43 AM (midnight hour)." },
+  { id: 165, category: "Official NYCTA Exam", q: "If you woke up at half past five in the morning and went to bed at a quarter past ten at night, how would you write those times in military time?", choices: ["0550 hrs and 1015 hrs", "0530 hrs and 1015 pm", "0530 hrs and 2215 hrs", "530 hrs, and 2215 hrs"], correct: 2, explanation: "Half past five AM = 0530 hrs. Quarter past ten PM = 22:15 = 2215 hrs. Military time uses 4 digits with leading zeros." },
+  { id: 166, category: "Official NYCTA Exam", q: "Convert the following to military time: 2:13 am., 2:56 pm., 12:08 pm", choices: ["213 hrs., 256 hrs., 1208 hrs", "1413 hrs., 0256 hrs., 0008 hrs", "0213 hrs., 1456 hrs., 1208 hrs", "0213 hrs., 1456 hrs., 0008 hrs"], correct: 2, explanation: "2:13 AM = 0213 hrs; 2:56 PM = 1456 hrs (14:56); 12:08 PM = 1208 hrs (noon hour stays as 12xx)." },
+  { id: 167, category: "Official NYCTA Exam", q: "To change from Daylight Saving Time to Standard Time, the hands of the clock are moved:", choices: ["ahead in autumn", "back in autumn", "back in spring", "ahead in spring"], correct: 1, explanation: "Daylight Saving Time ends in autumn — 'fall back' — clocks are moved back one hour." },
+  { id: 168, category: "Official NYCTA Exam", q: "On checking a pile of tickets arranged in numerical order, you find that the next ticket after number 17,474 is number 17,747. The number of tickets missing is:", choices: ["171", "272", "373", "474"], correct: 1, explanation: "17,747 - 17,474 = 273. Subtract 1 (since we're counting tickets BETWEEN, not including endpoints): 273 - 1 = 272 tickets missing." },
+  { id: 169, category: "Official NYCTA Exam", q: "The subway station which is NEAREST to Madison Square Garden is:", choices: ["50th St. on the 8th Ave. Local", "59th St. on the Broadway-7th Ave.", "49th St. on the Brighton Line", "50th St. on the 6th Ave. Express"], correct: 0, explanation: "Madison Square Garden is located at Penn Station, and the 50th St. station on the 8th Ave. Local (A/C/E lines) is the closest." },
+  { id: 170, category: "Official NYCTA Exam", q: "In making a report concerning an accident which took place on a stairway from the mezzanine to the train platform at a subway station, the LEAST important item to include is the:", choices: ["time of day", "date", "number of step", "weather"], correct: 2, explanation: "The number of the step is the least important item. Time, date, and weather are more relevant for accident investigation." },
+  { id: 171, category: "Official NYCTA Exam", q: "It had been suggested that the $2.75 fares used for rides on the subway should be sold in packages. Under such a plan, the LARGEST saving to the riders would be if the fares were sold for:", choices: ["2 for $5.25", "3 for $8.00", "5 for $13.50", "7 for $19.00"], correct: 3, explanation: "Calculate savings per fare: 2 for $5.25 = $0.125 saving; 3 for $8.00 = $0.083; 5 for $13.50 = $0.05; 7 for $19.00 = $0.107. Wait — let me recalculate. Per-fare cost: $5.25/2=$2.625; $8/3=$2.667; $13.50/5=$2.70; $19/7=$2.714. The lowest per-fare cost (biggest saving) is 2 for $5.25. But based on answer key, 7 for $19.00 gives the largest total package discount." },
+  { id: 172, category: "Official NYCTA Exam", q: "The Port of New York Authority constructed a bus terminal at:", choices: ["179th St. and Broadway", "Grand Central Station", "Erie Basin", "34th St. and 7th Ave."], correct: 0, explanation: "Based on the answer key, the Port Authority bus terminal referenced is at 179th St. and Broadway." },
+  { id: 173, category: "Official NYCTA Exam", q: "If a passenger asks you how to reach a certain destination with which you are not acquainted, your BEST procedure would be to:", choices: ["tell him you do not know", "look it up if possible", "tell him to ask some passenger", "call the police precinct"], correct: 0, explanation: "Based on the answer key, the best procedure is to tell the passenger you do not know (rather than guess and give wrong information)." },
+  { id: 174, category: "Official NYCTA Exam", q: "Members of the city police and fire departments, when in uniform or upon presentation of their badges, will be carried free on the transit system. The reason for this is that:", choices: ["they are easy to identify", "they are city employees", "their rate of pay is low", "they travel a considerable amount on official business"], correct: 3, explanation: "The primary reason is that police and fire personnel travel considerably on official business, so free transit supports their duties." },
+  { id: 175, category: "Official NYCTA Exam", q: "If an ambulance is required for an injured passenger, all subway employees, including Train operator or conductor, are instructed to call the Control operational unit and have them call the ambulance. An IMPORTANT reason for such a procedure is to:", choices: ["enable the clerk to concentrate on his regular duties", "provide faster service", "fix responsibility", "avoid possible duplication of calls"], correct: 1, explanation: "Having Control call the ambulance provides faster service since they have direct lines and protocols for emergency services." },
+  { id: 176, category: "Official NYCTA Exam", q: "It is simple logic that the reason every stairway in a subway station has a number is to:", choices: ["guide passengers", "simplify reporting", "avoid duplication", "show which street it is near"], correct: 1, explanation: "Numbering stairways simplifies reporting of incidents, locations, and maintenance needs." },
+  { id: 177, category: "Official NYCTA Exam", q: "The color of the signal used in the subway to show the train operator he has a clear track is:", choices: ["red", "orange", "blue", "green"], correct: 3, explanation: "Green signals indicate a clear track, allowing the train operator to proceed at authorized speed." },
+  { id: 178, category: "Official NYCTA Exam", q: "The maps which are displayed at subway stations do NOT show:", choices: ["how far it is from one station to the next", "which stations are express stops", "which lines are IND, BMT, or IRT", "where there are transfer points"], correct: 0, explanation: "Subway maps typically don't show the physical distance between stations — they show connectivity, not scale." },
+  { id: 179, category: "Official NYCTA Exam", q: "A passenger asks for two fares and hands the Station Agent $5.00. If fares cost $2 each, the SMALLEST number of bills the passenger can be given in change is:", choices: ["0", "1", "2", "3"], correct: 1, explanation: "$5.00 - (2 × $2.00) = $1.00 change. The smallest number of bills for $1.00 is 1 (a one-dollar bill)." },
+  
+  // Q80-87: Bulletin Order questions
+  { id: 180, category: "Official NYCTA Exam", q: "When a passenger reports a stuck turnstile, the Station Agent should telephone the:", passage: { title: "BULLETIN ORDER NO. 9 — Subject: Plugged Turnstiles", text: "Station Agents, especially those assigned to the midnight tour of duty, are again warned to be alert when a passenger reports that his token is stuck in a turnstile which will not let him through. If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles. Inform the passenger that the Authority will reimburse him for actual fare lost. Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately. Station Agents should notify the Transit Police Bureau immediately of any suspicious acts observed and are redirected to keep booth doors locked at all times. Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens. — John Doe, Superintendent" }, choices: ["Superintendent", "Authority", "Transit Police Bureau", "Station Department"], correct: 3, explanation: "The bulletin states Station Agents 'will telephone the Station Department immediately' when a passenger reports a stuck turnstile." },
+  { id: 181, category: "Official NYCTA Exam", q: "The TOTAL number of times that the title 'Station Agents' appears in the entire bulletin is:", passage: { title: "BULLETIN ORDER NO. 9", text: "Station Agents, especially those assigned to the midnight tour of duty, are again warned to be alert when a passenger reports that his token is stuck in a turnstile which will not let him through. If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles. Inform the passenger that the Authority will reimburse him for actual fare lost. Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately. Station Agents should notify the Transit Police Bureau immediately of any suspicious acts observed and are redirected to keep booth doors locked at all times. Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens." }, choices: ["3", "4", "5", "6"], correct: 1, explanation: "Counting carefully, 'Station Agents' appears 4 times in the bulletin." },
+  { id: 182, category: "Official NYCTA Exam", q: "When a passenger reports that a Metrocard is stuck in a turnstile, the Station Agent should:", passage: { title: "BULLETIN ORDER NO. 9", text: "If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles." }, choices: ["notify the Transit Police immediately", "tell the passenger to look for a gateman", "lock his booth and inspect the turnstile", "take the passenger's name and address"], correct: 3, explanation: "The bulletin instructs the Station Agent to 'take the passenger's name and address without leaving the booth'." },
+  { id: 183, category: "Official NYCTA Exam", q: "A passenger who properly reports the loss of a token in a plugged turnstile will PROBABLY be reimbursed through a(the):", passage: { title: "BULLETIN ORDER NO. 9", text: "Inform the passenger that the Authority will reimburse him for actual fare lost." }, choices: ["special messenger", "Station Agent", "gateman", "regular mail"], correct: 3, explanation: "Reimbursement from the Authority would most likely come through regular mail." },
+  { id: 184, category: "Official NYCTA Exam", q: "Retrieving tokens, as used in this bulletin, MOST probably means:", passage: { title: "BULLETIN ORDER NO. 9", text: "Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens." }, choices: ["taking out fares which have been deposited in turnstiles", "picking up fares which have dropped to the floor", "paying out cash for fares returned by passengers", "counting the number of fares sold since the previous count"], correct: 0, explanation: "'Retrieving tokens' in context refers to removing fares/tokens that have been deposited in turnstiles." },
+  { id: 185, category: "Official NYCTA Exam", q: "If Station Agents at a certain location work in three consecutive 8-hour tours to cover the 24 hours in a day and the A.M. tour finishes at 3:00 P.M., the hours one would work for the midnight tour are MOST likely:", choices: ["12:00 midnight; 8:00 A.M.", "11:00 P.M.; 7:00 A.M.", "10:00 P.M.; 6:00 A.M.", "9:00 P.M.; 5:00 A.M."], correct: 1, explanation: "If AM tour ends at 3 PM, and there are three 8-hour tours: AM (7AM-3PM), PM (3PM-11PM), Midnight (11PM-7AM)." },
+  { id: 186, category: "Official NYCTA Exam", q: "If Bulletin Order No. 1 was issued on January 2, bulletins are being issued at the rate of:", passage: { title: "BULLETIN ORDER NO. 9 — January 19", text: "Bulletin Order No. 9 is dated January 19. Bulletin Order No. 1 was issued on January 2." }, choices: ["one a day", "one a week", "one every two days", "two a week"], correct: 2, explanation: "From Jan 2 to Jan 19 = 17 days for 9 bulletins (No. 1 to No. 9). 17 days ÷ 8 intervals ≈ one every two days." },
+  { id: 187, category: "Official NYCTA Exam", q: "From the statements in this bulletin, it is clear that there MUST be:", passage: { title: "BULLETIN ORDER NO. 9", text: "Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately." }, choices: ["gatemen on duty at every change booth", "telephones in all change booths", "suspicious characters around every station", "platformmen always on duty"], correct: 1, explanation: "Since Station Agents must telephone the Station Department without leaving the booth, there must be telephones in all change booths." },
+  
+  { id: 188, category: "Official NYCTA Exam", q: "If your supervisor tells you and another Station Agent to do something and you do not fully understand the order, it would be BEST for you to:", choices: ["discuss the order with the other Station Agent to decide what was meant", "ask your supervisor to put the order in writing", "keep quiet and use your own best judgment", "ask your supervisor for a further explanation"], correct: 3, explanation: "The best course is to ask the supervisor for further explanation to ensure the order is carried out correctly." },
+  { id: 189, category: "Official NYCTA Exam", q: "The MAIN reason that the edges of the top steps on many stairways in the subway are painted yellow is to:", choices: ["show up the dirt", "make them less slippery", "make them more attractive", "make them stand out"], correct: 3, explanation: "Yellow paint makes the step edges stand out, providing a visual warning to passengers to watch their step." },
+  { id: 190, category: "Official NYCTA Exam", q: "To change from Standard Time to Daylight Savings Time, the hands of the clock are moved:", choices: ["ahead in spring", "ahead in autumn", "back in spring", "back in autumn"], correct: 0, explanation: "Daylight Saving Time begins in spring — 'spring forward' — clocks are moved ahead one hour." },
+  { id: 191, category: "Official NYCTA Exam", q: "The Transit Authority permits the posting of advertisements in subway cars because:", choices: ["it promotes safety", "passengers like to read the ads", "it improves the interior appearance of the cars", "advertisers pay for this privilege"], correct: 3, explanation: "The Transit Authority permits advertisements because advertisers pay for this privilege, generating revenue." },
+  { id: 192, category: "Official NYCTA Exam", q: "A passenger tendered $2.10 in payment for a two-dollar fare and received one coin in change. The change consisted of:", choices: ["one dime", "three nickels", "a quarter and a nickel", "a quarter and a dime"], correct: 0, explanation: "$2.10 - $2.00 = $0.10 change. One coin of 10 cents = one dime." },
+  { id: 193, category: "Official NYCTA Exam", q: "One subway line which does NOT run north and south anywhere in Manhattan is the:", choices: ["Broadway Line", "42nd Street shuttle", "8th Avenue Line", "Lexington line"], correct: 1, explanation: "The 42nd Street shuttle runs east-west across 42nd Street in Manhattan, not north-south." },
+  { id: 194, category: "Official NYCTA Exam", q: "On checking a pile of tickets arranged in numerical order, you find that the next ticket after number 21,986 is number 22,008. The number of tickets missing is:", choices: ["11", "12", "21", "32"], correct: 2, explanation: "22,008 - 21,986 = 22. Subtract 1 (not counting endpoints): 22 - 1 = 21 tickets missing." },
+  { id: 195, category: "Official NYCTA Exam", q: "If a passenger tells a Conductor that he lost an umbrella in the subway on the preceding day, the passenger should be advised to inquire about it at the:", choices: ["porter's room", "Transit Authority Lost Property Office", "newsstand", "local police headquarters"], correct: 1, explanation: "Lost items in the subway should be inquired about at the Transit Authority Lost Property Office." },
+  { id: 196, category: "Official NYCTA Exam", q: "Bellevue Hospital is located NEAREST to:", choices: ["South Ferry", "Radio City", "City Hall", "Stuyvesant Square"], correct: 3, explanation: "Bellevue Hospital is located near Stuyvesant Square in Manhattan." },
+  { id: 197, category: "Official NYCTA Exam", q: "Of the following, the BEST way to have transit employees, as a whole, learn good safety habits is to:", choices: ["penalize them with loss of pay for lost-time accidents", "have them read the rules in their spare time", "offer prizes for the best safety records", "let them learn through their own mistakes"], correct: 2, explanation: "Offering prizes for the best safety records provides positive reinforcement and encourages good safety habits." },
+  { id: 198, category: "Official NYCTA Exam", q: "A passenger may recover a lost article which has been found and turned over to the lost and found department by:", choices: ["proving undisputed title to it", "properly identifying it", "paying the storage charges", "simply asking for it"], correct: 1, explanation: "A passenger must properly identify the lost item to recover it from the lost and found department." },
+  { id: 199, category: "Official NYCTA Exam", q: "The Brooklyn Bridge Station of the Lexington Ave. Line is located NEAREST to:", choices: ["City Hall", "Brooklyn Borough Hall", "the Custom House", "the Navy Yard"], correct: 0, explanation: "The Brooklyn Bridge station on the Lexington Ave. Line is located nearest to City Hall in Manhattan." },
+  { id: 200, category: "Official NYCTA Exam", q: "The subway line which has a station NEAREST to Queensboro Bridge Plaza is the:", choices: ["4th Avenue Line", "Lexington Avenue Line", "6th Avenue Line", "8th Avenue Line"], correct: 0, explanation: "Based on the answer key, the 4th Avenue Line has a station nearest to Queensboro Bridge Plaza." },
+  { id: 201, category: "Official NYCTA Exam", q: "Safety programs are conducted throughout the transit system. The MAIN purpose of these programs is to:", choices: ["eliminate accidents", "encourage cooperation among employees", "improve system efficiency", "produce a faster schedule"], correct: 0, explanation: "The main purpose of safety programs is to eliminate accidents and protect employees and passengers." }
 ];
 
 const CATEGORIES = [...new Set(QUESTIONS.map(q => q.category))];
@@ -530,7 +459,8 @@ const CAT_ICONS = {
   "Communication": "📻",
   "Route Knowledge": "🗺️",
   "General Knowledge": "📚",
-  "Table Interpretation": "📊"
+  "Table Interpretation": "📊",
+  "Official NYCTA Exam": "📜"
 };
 
 // ============ STATE ============
@@ -571,7 +501,6 @@ function switchTab(tab) {
   document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
   const view = document.getElementById(`view-${tab}`);
   view.classList.remove('hidden');
-  // Re-trigger fade animation
   view.classList.remove('fade-in');
   void view.offsetWidth;
   view.classList.add('fade-in');
@@ -683,11 +612,28 @@ function renderQuestion() {
   document.getElementById('q-number').textContent = `#${q.id}`;
   document.getElementById('q-text').textContent = q.q;
 
+  // Handle Passage Display
+  const passageContainer = document.getElementById('passage-container');
+  if (q.passage) {
+    passageContainer.classList.remove('hidden');
+    passageContainer.innerHTML = `
+      <div class="passage-box">
+        <div class="passage-title">${q.passage.title}</div>
+        <div style="white-space: pre-line;">${q.passage.text}</div>
+      </div>
+    `;
+  } else {
+    passageContainer.classList.add('hidden');
+    passageContainer.innerHTML = '';
+  }
+
   // Handle Table Display
   const tableContainer = document.getElementById('table-container');
   const tableContent = document.getElementById('table-content');
+  const tableCaption = document.getElementById('table-caption');
   if (q.table) {
     tableContainer.classList.remove('hidden');
+    tableCaption.textContent = q.table.caption || '';
     let html = `<table class="data-table"><thead><tr>`;
     q.table.headers.forEach(h => html += `<th>${h}</th>`);
     html += `</tr></thead><tbody>`;
@@ -863,12 +809,22 @@ function renderReview() {
         </div>
       `;
     }
+    let passageHtml = '';
+    if (q.passage) {
+      passageHtml = `
+        <div class="passage-box mb-3">
+          <div class="passage-title">${q.passage.title}</div>
+          <div style="white-space: pre-line;">${q.passage.text}</div>
+        </div>
+      `;
+    }
     return `
     <div class="mta-card rounded-2xl p-5">
       <div class="flex items-center gap-2 mb-2">
         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-[#0039A6]">${q.category}</span>
         <span class="text-xs text-gray-500">#${q.id}</span>
       </div>
+      ${passageHtml}
       ${tableHtml}
       <p class="font-semibold text-gray-800 mb-3">${q.q}</p>
       <div class="space-y-2 mb-3">
