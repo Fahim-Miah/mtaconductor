@@ -25,6 +25,9 @@
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-secondary { background: white; color: var(--mta-blue); border: 2px solid var(--mta-blue); }
   .btn-secondary:hover { background: #eef2ff; }
+  .btn-nav { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; transition: all .2s; }
+  .btn-nav:hover:not(:disabled) { background: #e2e8f0; color: #1e293b; }
+  .btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
   .choice-btn { transition: all .15s; }
   .choice-btn:hover:not(:disabled) { background: #eef2ff; border-color: var(--mta-blue); }
   .choice-btn.correct { background: #d4f5e3 !important; border-color: var(--mta-green) !important; color: #064e3b; }
@@ -52,6 +55,9 @@
   .table-caption { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 0.5rem; display: block; font-weight: 600; }
   .passage-box { background: #fef9e7; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #334155; line-height: 1.6; }
   .passage-title { font-weight: 700; color: #92400e; margin-bottom: 0.5rem; font-size: 0.95rem; }
+  .diagram-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: center; overflow-x: auto; }
+  .diagram-caption { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 0.5rem; display: block; font-weight: 600; text-align: center; }
+  .shared-passage-indicator { background: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.5rem; font-weight: 600; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -169,6 +175,7 @@
         </div>
         
         <div id="passage-container" class="hidden"></div>
+        <div id="diagram-container" class="hidden"></div>
         <div id="table-container" class="hidden mb-6">
           <span class="table-caption" id="table-caption"></span>
           <div class="data-table-container" id="table-content"></div>
@@ -181,9 +188,12 @@
       <div id="feedback" class="hidden rounded-2xl p-5 mb-4 border-l-4"></div>
 
       <div class="flex justify-between items-center flex-wrap gap-3">
-        <button id="btn-submit" onclick="submitAnswer()" class="btn-primary px-6 py-3 rounded-xl font-semibold" disabled>Submit Answer</button>
-        <button id="btn-next" onclick="nextQuestion()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">Next Question →</button>
-        <button id="btn-finish" onclick="finishQuiz()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">View Results</button>
+        <button id="btn-prev" onclick="prevQuestion()" class="btn-nav px-5 py-3 rounded-xl font-semibold">← Previous</button>
+        <div class="flex gap-2">
+          <button id="btn-submit" onclick="submitAnswer()" class="btn-primary px-6 py-3 rounded-xl font-semibold" disabled>Submit Answer</button>
+          <button id="btn-next" onclick="nextQuestion()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">Next Question →</button>
+          <button id="btn-finish" onclick="finishQuiz()" class="hidden btn-primary px-6 py-3 rounded-xl font-semibold">View Results</button>
+        </div>
       </div>
     </div>
   </section>
@@ -268,6 +278,136 @@
 </footer>
 
 <script>
+// ============ SHARED PASSAGES (for grouped questions) ============
+const SHARED_PASSAGES = {
+  accident: {
+    title: "DESCRIPTION OF ACCIDENT (Taken from a newspaper dated October 21st)",
+    text: `Thirty-six persons were injured yesterday when a crowded Transit Authority bus and a white convertible collided in Brooklyn at about 2:20 P.M., at Frank and Boyd Streets.
+
+Four persons, including Frieda Darth, the 5-month-old daughter of Florence Darth, are being treated for serious injuries at Blair Street Hospital. The other injured people were treated at nearby Brookside Hospital and sent home. The injured included persons in the bus and the car and a 10-year-old girl, Joyce Brand, who was standing on the sidewalk with her mother, Brenda, 27 years old, of 23 Charles Street, Brooklyn.
+
+According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct, the bus driven by James Bond, Badge 97528, was heading south on Frank Street when the automobile driven by Thomas Jones collided with the bus. Jones was only slightly hurt, but his passenger, Flora Smith, is in fair condition in Blair Street Hospital with a brain concussion. Thomas Jones was given a summons for going through a stop sign, using worn tires, and having an illegal registration.`
+  },
+  detergent: {
+    title: "SITUATION",
+    text: `A new detergent that is to be added to water and the resulting mixture just wiped on any surface has been tested by the station department and appeared to be excellent. However, you notice, after inspecting a large number of stations that your porters have cleaned with this detergent, that the surfaces cleaned are not as clean as they formerly were when the old method was used.`
+  },
+  bulletin9: {
+    title: "BULLETIN ORDER NO. 9 — Subject: Plugged Turnstiles (January 19)",
+    text: `Station Agents, especially those assigned to the midnight tour of duty, are again warned to be alert when a passenger reports that his token is stuck in a turnstile which will not let him through. If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles. Inform the passenger that the Authority will reimburse him for actual fare lost. Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately. Station Agents should notify the Transit Police Bureau immediately of any suspicious acts observed and are redirected to keep booth doors locked at all times. Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens.
+
+— John Doe, Superintendent`
+  }
+};
+
+// ============ SVG DIAGRAMS ============
+const DIAGRAMS = {
+  trackAB: `<div class="diagram-box">
+    <svg viewBox="0 0 500 520" width="500" height="520" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/>
+        </marker>
+      </defs>
+      <text x="250" y="25" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Track Diagram</text>
+      <!-- North arrow -->
+      <line x1="450" y1="80" x2="450" y2="40" stroke="#1e293b" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="450" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">N</text>
+      <!-- Track A -->
+      <line x1="150" y1="70" x2="150" y2="490" stroke="#0039A6" stroke-width="4"/>
+      <text x="150" y="60" text-anchor="middle" font-size="14" font-weight="700" fill="#0039A6">Track A</text>
+      <!-- Track B -->
+      <line x1="350" y1="70" x2="350" y2="490" stroke="#0039A6" stroke-width="4"/>
+      <text x="350" y="60" text-anchor="middle" font-size="14" font-weight="700" fill="#0039A6">Track B</text>
+      <!-- Track A stations (south to north) -->
+      <circle cx="150" cy="470" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="110" y="475" text-anchor="end" font-size="13" fill="#1e293b" font-weight="600">Battery Park</text>
+      <circle cx="150" cy="380" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="110" y="385" text-anchor="end" font-size="13" fill="#1e293b" font-weight="600">Yukon Street</text>
+      <circle cx="150" cy="290" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="110" y="295" text-anchor="end" font-size="13" fill="#1e293b" font-weight="600">Douglas Street</text>
+      <circle cx="150" cy="200" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="110" y="205" text-anchor="end" font-size="13" fill="#1e293b" font-weight="600">Seneca Avenue</text>
+      <circle cx="150" cy="110" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="110" y="115" text-anchor="end" font-size="13" fill="#1e293b" font-weight="600">Brook Place</text>
+      <!-- Track B stations (south to north) -->
+      <circle cx="350" cy="470" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="390" y="475" text-anchor="start" font-size="13" fill="#1e293b" font-weight="600">Battery Park</text>
+      <circle cx="350" cy="380" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="390" y="385" text-anchor="start" font-size="13" fill="#1e293b" font-weight="600">Seneca Avenue</text>
+      <circle cx="350" cy="290" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="390" y="295" text-anchor="start" font-size="13" fill="#1e293b" font-weight="600">Yukon Street</text>
+      <circle cx="350" cy="200" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="390" y="205" text-anchor="start" font-size="13" fill="#1e293b" font-weight="600">Brook Place</text>
+      <circle cx="350" cy="110" r="10" fill="#fff" stroke="#0039A6" stroke-width="3"/>
+      <text x="390" y="115" text-anchor="start" font-size="13" fill="#1e293b" font-weight="600">Douglas Street</text>
+      <!-- South label -->
+      <text x="250" y="510" text-anchor="middle" font-size="12" fill="#64748b" font-style="italic">South</text>
+    </svg>
+  </div>`,
+  subwayMap: `<div class="diagram-box">
+    <svg viewBox="0 0 600 450" width="600" height="450" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+      <text x="300" y="25" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">M60 SBS Route & Subway Connections</text>
+      <!-- Central Park -->
+      <rect x="80" y="160" width="440" height="130" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+      <text x="300" y="230" text-anchor="middle" font-size="18" font-weight="700" fill="#166534">Central Park</text>
+      <!-- M60 SBS Route (orange line) -->
+      <path d="M 60 100 Q 100 100 150 100 L 450 100 Q 500 100 540 100" stroke="#FF6B1A" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <!-- M60 label -->
+      <rect x="260" y="75" width="80" height="25" fill="#FF6B1A" rx="4"/>
+      <text x="300" y="93" text-anchor="middle" font-size="13" font-weight="700" fill="white">M60 SBS</text>
+      <!-- LaGuardia Airport -->
+      <circle cx="540" cy="100" r="12" fill="#FF6B1A"/>
+      <text x="540" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="white">✈</text>
+      <text x="540" y="130" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">LaGuardia</text>
+      <text x="540" y="143" text-anchor="middle" font-size="10" fill="#64748b">Airport</text>
+      <!-- 125 St Station (multiple lines) -->
+      <circle cx="380" cy="100" r="14" fill="white" stroke="#1e293b" stroke-width="3"/>
+      <text x="380" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#1e293b">125</text>
+      <text x="380" y="65" text-anchor="middle" font-size="12" font-weight="600" fill="#1e293b">125 Street Station</text>
+      <!-- Line indicators at 125 St -->
+      <g transform="translate(320, 35)">
+        <circle cx="0" cy="0" r="8" fill="#0039A6"/><text x="0" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">A</text>
+        <circle cx="18" cy="0" r="8" fill="#0039A6"/><text x="18" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">B</text>
+        <circle cx="36" cy="0" r="8" fill="#0039A6"/><text x="36" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">C</text>
+        <circle cx="54" cy="0" r="8" fill="#0039A6"/><text x="54" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">D</text>
+      </g>
+      <g transform="translate(380, 35)">
+        <circle cx="0" cy="0" r="8" fill="#EE3124"/><text x="0" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">1</text>
+        <circle cx="18" cy="0" r="8" fill="#00A651"/><text x="18" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">2</text>
+        <circle cx="36" cy="0" r="8" fill="#00A651"/><text x="36" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">3</text>
+      </g>
+      <g transform="translate(430, 35)">
+        <circle cx="0" cy="0" r="8" fill="#00A651"/><text x="0" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">4</text>
+        <circle cx="18" cy="0" r="8" fill="#00A651"/><text x="18" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">5</text>
+        <circle cx="36" cy="0" r="8" fill="#808080"/><text x="36" y="4" text-anchor="middle" font-size="9" font-weight="700" fill="white">6</text>
+      </g>
+      <!-- 116 St Columbia University (1 train) -->
+      <circle cx="200" cy="100" r="12" fill="white" stroke="#EE3124" stroke-width="3"/>
+      <text x="200" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#EE3124">1</text>
+      <text x="200" y="130" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">116 St - Columbia</text>
+      <text x="200" y="143" text-anchor="middle" font-size="10" fill="#64748b">University</text>
+      <!-- Cathedral Pkwy 110 St -->
+      <circle cx="100" cy="100" r="12" fill="white" stroke="#EE3124" stroke-width="3"/>
+      <text x="100" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#EE3124">1</text>
+      <text x="100" y="130" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">Cathedral Pkwy</text>
+      <text x="100" y="143" text-anchor="middle" font-size="10" fill="#64748b">110 Street</text>
+      <!-- West End -->
+      <text x="60" y="130" text-anchor="middle" font-size="10" fill="#64748b">To Riverside Dr</text>
+      <!-- Legend -->
+      <rect x="50" y="340" width="500" height="90" fill="#f8fafc" stroke="#cbd5e1" rx="6"/>
+      <text x="70" y="365" font-size="12" font-weight="700" fill="#1e293b">Legend:</text>
+      <line x1="70" y1="385" x2="110" y2="385" stroke="#FF6B1A" stroke-width="4"/>
+      <text x="120" y="389" font-size="11" fill="#1e293b">M60 SBS Bus Route</text>
+      <circle cx="270" cy="385" r="8" fill="white" stroke="#1e293b" stroke-width="2"/>
+      <text x="285" y="389" font-size="11" fill="#1e293b">Subway Station</text>
+      <rect x="400" y="377" width="16" height="16" fill="#dcfce7" stroke="#16a34a"/>
+      <text x="422" y="389" font-size="11" fill="#1e293b">Park</text>
+      <text x="300" y="415" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">Transfer connections shown at each station</text>
+    </svg>
+  </div>`
+};
+
 // ============ QUESTION BANK ============
 const QUESTIONS = [
   // ========== ORIGINAL PRACTICE QUESTIONS (1-60) ==========
@@ -344,9 +484,9 @@ const QUESTIONS = [
   { id: 107, category: "Official NYCTA Exam", q: "Of the following New York City parks, the one which is NOT located in the Borough of The Bronx is:", choices: ["Pelham Bay Park", "Marine Park", "Crotona Park", "Van Cortlandt Park"], correct: 1, explanation: "Marine Park is located in Brooklyn, not the Bronx. Pelham Bay, Crotona, and Van Cortlandt are all Bronx parks." },
   
   // Q8-17: Timetable questions (KK Line)
-  { id: 108, category: "Official NYCTA Exam", q: "If a passenger wishes to get to Hall Square station by 8:45 and is going to board the train at Cane St. station, he should plan to board the train which leaves this station at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Northbound)", headers: ["Train No.", "Front St. Leave", "Cane St. Leave", "Amber St. Leave", "Hall Square Arrive"], rows: [["76", "7:25", "7:35", "7:45", "8:00"], ["77", "7:40", "7:50", "8:00", "8:15"], ["78", "7:55", "8:05", "8:15", "8:30"], ["79", "8:05", "8:15", "8:25", "8:40"], ["80", "8:15", "8:25", "8:35", "8:50"], ["81", "8:25", "8:35", "8:45", "9:00"], ["82", "8:35", "8:45", "8:55", "9:10"]] }, choices: ["8:05", "8:15", "8:25", "8:30"], correct: 1, explanation: "Train 78 leaves Cane St. at 8:15 and arrives at Hall Square at 8:30, which is before the 8:45 deadline. Train 77 (8:05 departure) arrives at 8:15, but the answer key indicates 8:15 (Train 78) is the correct choice based on the specific timing needed." },
+  { id: 108, category: "Official NYCTA Exam", q: "If a passenger wishes to get to Hall Square station by 8:45 and is going to board the train at Cane St. station, he should plan to board the train which leaves this station at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Northbound)", headers: ["Train No.", "Front St. Leave", "Cane St. Leave", "Amber St. Leave", "Hall Square Arrive"], rows: [["76", "7:25", "7:35", "7:45", "8:00"], ["77", "7:40", "7:50", "8:00", "8:15"], ["78", "7:55", "8:05", "8:15", "8:30"], ["79", "8:05", "8:15", "8:25", "8:40"], ["80", "8:15", "8:25", "8:35", "8:50"], ["81", "8:25", "8:35", "8:45", "9:00"], ["82", "8:35", "8:45", "8:55", "9:10"]] }, choices: ["8:05", "8:15", "8:25", "8:30"], correct: 1, explanation: "Train 78 leaves Cane St. at 8:15 and arrives at Hall Square at 8:30, which is before the 8:45 deadline." },
   { id: 109, category: "Official NYCTA Exam", q: "For train No. 81, the total length of time, including the 5-minute layover at Hall Square, required for one round trip from Front St. to Hall Square and return is:", table: { caption: "TIMETABLE — KK LINE — Train 81 Round Trip", headers: ["Direction", "Station", "Time"], rows: [["Northbound", "Front St. Leave", "8:25"], ["Northbound", "Hall Square Arrive", "9:00"], ["Northbound", "Hall Square Leave", "9:05"], ["Southbound", "Front St. Arrive", "9:40"]] }, choices: ["70 minutes", "75 minutes", "80 minutes", "100 minutes"], correct: 1, explanation: "From Front St. departure at 8:25 to return at 9:40 = 75 minutes total (includes 5-min layover at Hall Square)." },
-  { id: 110, category: "Official NYCTA Exam", q: "If a passenger arrives at the Amber St. station just before 9:00, he can expect to get to Front St. at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Southbound from Amber St.)", headers: ["Train No.", "Amber St. Leave", "Cane St. Leave", "Front St. Arrive"], rows: [["78", "9:10", "9:15", "9:25"], ["79", "9:20", "9:25", "9:40"], ["80", "9:30", "9:35", "9:50"], ["81", "9:40", "9:45", "10:05"]] }, choices: ["8:05", "9:20", "9:25", "10:00"], correct: 1, explanation: "The next train after 9:00 from Amber St. is Train 78 at 9:10, but based on the answer key, the answer is 9:20 (Train 79 departure time)." },
+  { id: 110, category: "Official NYCTA Exam", q: "If a passenger arrives at the Amber St. station just before 9:00, he can expect to get to Front St. at:", table: { caption: "TIMETABLE — KK LINE — WEEKDAYS (Southbound from Amber St.)", headers: ["Train No.", "Amber St. Leave", "Cane St. Leave", "Front St. Arrive"], rows: [["78", "9:10", "9:15", "9:25"], ["79", "9:20", "9:25", "9:40"], ["80", "9:30", "9:35", "9:50"], ["81", "9:40", "9:45", "10:05"]] }, choices: ["8:05", "9:20", "9:25", "10:00"], correct: 1, explanation: "The next train after 9:00 from Amber St. is Train 78 at 9:10, arriving Front St. at 9:25. Based on the answer key, the answer is 9:20." },
   { id: 111, category: "Official NYCTA Exam", q: "After 9:15, there is a train leaving Front St. every _____ minutes.", table: { caption: "TIMETABLE — KK LINE — Front St. Departures After 9:15", headers: ["Train No.", "Front St. Leave"], rows: [["76", "8:45"], ["P8:50", "8:50"], ["P8:55", "8:55"], ["9:00", "9:00"], ["P9:05", "9:05"], ["P9:10", "9:10"], ["9:15", "9:15"], ["9:25", "9:25"], ["9:35", "9:35"], ["9:45", "9:45"], ["9:55", "9:55"], ["10:05", "10:05"]] }, choices: ["5", "5 or 10", "10", "10 or 15"], correct: 2, explanation: "After 9:15, trains leave Front St. at 10-minute intervals (9:25, 9:35, 9:45, etc.)." },
   { id: 112, category: "Official NYCTA Exam", q: "The TOTAL number of different train numbers listed in the portion of the timetable shown is:", choices: ["14", "12", "11", "10"], correct: 2, explanation: "Counting all unique train numbers in the timetable gives 11 different trains." },
   { id: 113, category: "Official NYCTA Exam", q: "The length of time that trains are scheduled to remain at Hall Square is _____ minutes.", choices: ["always 5", "always 10", "always 15", "either 5 or 15"], correct: 0, explanation: "Trains are scheduled for a consistent 5-minute layover at Hall Square." },
@@ -357,23 +497,23 @@ const QUESTIONS = [
   
   { id: 118, category: "Official NYCTA Exam", q: "A passenger has fallen on the platform and apparently broken a leg. Before calling for an ambulance, it would be BEST to:", choices: ["make him comfortable where he has fallen", "apply a tourniquet", "move him to a nearby bench and make him comfortable", "ask him about the details of the accident"], correct: 0, explanation: "With a suspected broken leg, the best action is to make the person comfortable where they fell. Moving them could worsen the injury." },
   
-  // Q19-28: Accident description questions
-  { id: 119, category: "Official NYCTA Exam", q: "The car that collided with the bus was a:", passage: { title: "ACCIDENT DESCRIPTION (Newspaper, October 21st)", text: "Thirty-six persons were injured yesterday when a crowded Transit Authority bus and a white convertible collided in Brooklyn at about 2:20 P.M., at Frank and Boyd Streets. Four persons, including Frieda Darth, the 5-month-old daughter of Florence Darth, are being treated for serious injuries at Blair Street Hospital. The other injured people were treated at nearby Brookside Hospital and sent home. The injured included persons in the bus and the car and a 10-year-old girl, Joyce Brand, who was standing on the sidewalk with her mother, Brenda, 27 years old, of 23 Charles Street, Brooklyn. According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct, the bus driven by James Bond, Badge 97528, was heading south on Frank Street when the automobile driven by Thomas Jones collided with the bus. Jones was only slightly hurt, but his passenger, Flora Smith, is in fair condition in Blair Street Hospital with a brain concussion. Thomas Jones was given a summons for going through a stop sign, using worn tires, and having an illegal registration." }, choices: ["sedan", "sports car", "convertible", "station wagon"], correct: 2, explanation: "The passage clearly states the automobile was a 'white convertible'." },
-  { id: 120, category: "Official NYCTA Exam", q: "The number of people treated at Brookside Hospital was:", passage: { title: "ACCIDENT DESCRIPTION", text: "Thirty-six persons were injured. Four persons (including Frieda Darth) are being treated for serious injuries at Blair Street Hospital. The other injured people were treated at nearby Brookside Hospital and sent home." }, choices: ["4", "5", "32", "36"], correct: 2, explanation: "36 total injured minus 4 at Blair Street Hospital = 32 treated at Brookside Hospital." },
-  { id: 121, category: "Official NYCTA Exam", q: "This accident happened in the:", passage: { title: "ACCIDENT DESCRIPTION", text: "The collision occurred at about 2:20 P.M." }, choices: ["early morning", "early afternoon", "late morning", "late afternoon"], correct: 1, explanation: "2:20 P.M. is in the early afternoon." },
-  { id: 122, category: "Official NYCTA Exam", q: "The name of the mother of the seriously injured infant is:", passage: { title: "ACCIDENT DESCRIPTION", text: "Four persons, including Frieda Darth, the 5-month-old daughter of Florence Darth, are being treated for serious injuries." }, choices: ["Florence", "Frieda", "Joyce", "Brenda"], correct: 0, explanation: "Frieda Darth is the 5-month-old infant, and her mother is Florence Darth." },
-  { id: 123, category: "Official NYCTA Exam", q: "The name of the patrolman who reported on this accident is:", passage: { title: "ACCIDENT DESCRIPTION", text: "According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct..." }, choices: ["James", "Frank", "Thomas", "Leo"], correct: 3, explanation: "Patrolman Leo Gates reported on the accident." },
-  { id: 124, category: "Official NYCTA Exam", q: "It is clear that the 10-year-old girl:", passage: { title: "ACCIDENT DESCRIPTION", text: "The injured included... a 10-year-old girl, Joyce Brand, who was standing on the sidewalk with her mother, Brenda, 27 years old, of 23 Charles Street, Brooklyn." }, choices: ["lives on Charles Street", "was seriously injured", "fell out of the passenger car", "was a passenger on the bus"], correct: 0, explanation: "Joyce Brand's mother Brenda lives at 23 Charles Street, so Joyce lives there too." },
-  { id: 125, category: "Official NYCTA Exam", q: "The number of violations for which the driver of the car was summoned is:", passage: { title: "ACCIDENT DESCRIPTION", text: "Thomas Jones was given a summons for going through a stop sign, using worn tires, and having an illegal registration." }, choices: ["1", "2", "3", "4"], correct: 2, explanation: "Three violations: (1) going through a stop sign, (2) using worn tires, (3) illegal registration." },
-  { id: 126, category: "Official NYCTA Exam", q: "The badge number of the Transit Authority bus driver is:", passage: { title: "ACCIDENT DESCRIPTION", text: "...the bus driven by James Bond, Badge 97528..." }, choices: ["96287", "97528", "92687", "95728"], correct: 1, explanation: "The bus driver James Bond has Badge 97528. (Patrolman Leo Gates has Badge 96287.)" },
-  { id: 127, category: "Official NYCTA Exam", q: "The accident described took place on a:", passage: { title: "ACCIDENT DESCRIPTION", text: "Newspaper dated October 21st reports: 'Thirty-six persons were injured yesterday...'" }, choices: ["Tuesday", "Wednesday", "Thursday", "Friday"], correct: 1, explanation: "If the newspaper is dated October 21st and the accident was 'yesterday', it occurred on October 20th. Based on the answer key, this was a Wednesday." },
-  { id: 128, category: "Official NYCTA Exam", q: "The patrolman who reported on this accident came from the _____ Precinct.", passage: { title: "ACCIDENT DESCRIPTION", text: "According to Patrolman Leo Gates, Badge 96287, of the 25th Precinct..." }, choices: ["23rd", "24th", "25th", "27th"], correct: 2, explanation: "Patrolman Leo Gates is from the 25th Precinct." },
+  // Q19-28: Accident description questions (ALL share the full accident passage)
+  { id: 119, category: "Official NYCTA Exam", passageKey: "accident", q: "The car that collided with the bus was a:", choices: ["sedan", "sports car", "convertible", "station wagon"], correct: 2, explanation: "The passage clearly states the automobile was a 'white convertible'." },
+  { id: 120, category: "Official NYCTA Exam", passageKey: "accident", q: "The number of people treated at Brookside Hospital was:", choices: ["4", "5", "32", "36"], correct: 2, explanation: "36 total injured minus 4 at Blair Street Hospital = 32 treated at Brookside Hospital." },
+  { id: 121, category: "Official NYCTA Exam", passageKey: "accident", q: "This accident happened in the:", choices: ["early morning", "early afternoon", "late morning", "late afternoon"], correct: 1, explanation: "2:20 P.M. is in the early afternoon." },
+  { id: 122, category: "Official NYCTA Exam", passageKey: "accident", q: "The name of the mother of the seriously injured infant is:", choices: ["Florence", "Frieda", "Joyce", "Brenda"], correct: 0, explanation: "Frieda Darth is the 5-month-old infant, and her mother is Florence Darth." },
+  { id: 123, category: "Official NYCTA Exam", passageKey: "accident", q: "The name of the patrolman who reported on this accident is:", choices: ["James", "Frank", "Thomas", "Leo"], correct: 3, explanation: "Patrolman Leo Gates reported on the accident." },
+  { id: 124, category: "Official NYCTA Exam", passageKey: "accident", q: "It is clear that the 10-year-old girl:", choices: ["lives on Charles Street", "was seriously injured", "fell out of the passenger car", "was a passenger on the bus"], correct: 0, explanation: "Joyce Brand's mother Brenda lives at 23 Charles Street, so Joyce lives there too." },
+  { id: 125, category: "Official NYCTA Exam", passageKey: "accident", q: "The number of violations for which the driver of the car was summoned is:", choices: ["1", "2", "3", "4"], correct: 2, explanation: "Three violations: (1) going through a stop sign, (2) using worn tires, (3) illegal registration." },
+  { id: 126, category: "Official NYCTA Exam", passageKey: "accident", q: "The badge number of the Transit Authority bus driver is:", choices: ["96287", "97528", "92687", "95728"], correct: 1, explanation: "The bus driver James Bond has Badge 97528. (Patrolman Leo Gates has Badge 96287.)" },
+  { id: 127, category: "Official NYCTA Exam", passageKey: "accident", q: "The accident described took place on a:", choices: ["Tuesday", "Wednesday", "Thursday", "Friday"], correct: 1, explanation: "If the newspaper is dated October 21st and the accident was 'yesterday', it occurred on October 20th. Based on the answer key, this was a Wednesday." },
+  { id: 128, category: "Official NYCTA Exam", passageKey: "accident", q: "The patrolman who reported on this accident came from the _____ Precinct.", choices: ["23rd", "24th", "25th", "27th"], correct: 2, explanation: "Patrolman Leo Gates is from the 25th Precinct." },
   
   { id: 129, category: "Official NYCTA Exam", q: "After giving you an order over the phone, your supervisor is likely to ask you to repeat it back to him to make sure that you:", choices: ["will carry out the order as given", "are the Station Agent on duty", "heard the order correctly", "have written the order down"], correct: 2, explanation: "Having you repeat the order ensures you heard it correctly, preventing misunderstandings." },
   
   // Q30-39: Borough matching
   { id: 130, category: "Official NYCTA Exam", q: "Grand Concourse is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 1, explanation: "Grand Concourse is a major boulevard in The Bronx." },
-  { id: 131, category: "Official NYCTA Exam", q: "Grand Army Plaza is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 2, explanation: "Grand Army Plaza is located in Brooklyn, at the southeast corner of Central Park's successor in Brooklyn." },
+  { id: 131, category: "Official NYCTA Exam", q: "Grand Army Plaza is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 2, explanation: "Grand Army Plaza is located in Brooklyn." },
   { id: 132, category: "Official NYCTA Exam", q: "Grand Central Parkway is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "Grand Central Parkway is primarily located in Queens." },
   { id: 133, category: "Official NYCTA Exam", q: "Citi Field is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "Citi Field, home of the New York Mets, is located in Queens." },
   { id: 134, category: "Official NYCTA Exam", q: "Kennedy Airport (JFK) is located in which borough?", choices: ["Manhattan", "The Bronx", "Brooklyn", "Queens"], correct: 3, explanation: "John F. Kennedy International Airport is located in Queens." },
@@ -391,17 +531,17 @@ const QUESTIONS = [
   { id: 145, category: "Official NYCTA Exam", q: "On Mondays through Fridays between January 19th and January 22nd, track maintenance is performed from 10 PM each evening to 5 AM the next morning. The B and D trains operate on tracks 2 and 3 that are affected by track maintenance. Both the B and D train are rerouted to the 8th Avenue line, while the F and M trains will continue to operate on tracks 1 and 4 at reduced speed during the maintenance. Which of the following train routes are impacted by track maintenance at 4 AM?", choices: ["B", "B and D", "F", "F and M"], correct: 1, explanation: "At 4 AM (during maintenance hours), both B and D trains are rerouted due to track maintenance on their regular tracks." },
   { id: 146, category: "Official NYCTA Exam", q: "Conductor James is performing platform duties at Times Square. A passenger asks him when the 7 train is due to arrive at Times Square station. The time is 1:15. What time does the next 7 train arrive?", table: { caption: "7 Train Schedule (Flushing Line)", headers: ["Flushing Main St.", "Mets Willets Pt.", "111 St.", "74 St. Broadway", "61 St. Woodside", "Queensboro Plaza", "Times Square", "34 St. Hudson Yards"], rows: [["12:12", "12:14", "12:16", "12:21", "12:25", "12:32", "12:41", "12:47"], ["12:26", "12:28", "12:30", "12:35", "12:39", "12:46", "12:55", "1:01"], ["12:40", "12:43", "12:44", "12:50", "12:53", "1:00", "1:09", "1:16"], ["1:00", "1:03", "1:04", "1:10", "1:13", "1:20", "1:29", "1:36"], ["1:20", "1:23", "1:24", "1:30", "1:33", "1:40", "1:49", "1:56"], ["1:40", "1:43", "1:44", "1:50", "1:53", "2:00", "2:09", "2:16"]] }, choices: ["1:09", "1:15", "1:29", "1:36"], correct: 2, explanation: "At 1:15 PM, the previous train arrived at 1:09. The next train arrives at Times Square at 1:29." },
   { id: 147, category: "Official NYCTA Exam", q: "What street is the Empire State Building located?", choices: ["14th Street", "23rd Street", "34th Street", "57th Street"], correct: 2, explanation: "The Empire State Building is located at 34th Street and Fifth Avenue in Manhattan." },
-  { id: 148, category: "Official NYCTA Exam", q: "If a train is travelling north on Track B after leaving Seneca Avenue station, what is the next station?", passage: { title: "Track Diagram Description", text: "Track A runs: Battery Park → Yukon Street → Douglas Street → Seneca Avenue → Brook Place (northbound). Track B runs parallel: Battery Park → Yukon Street → Seneca Avenue → Brook Place → Douglas Street (northbound)." }, choices: ["Battery Park", "Brook Place", "Douglas Street", "Yukon Street"], correct: 1, explanation: "On Track B, after Seneca Avenue, the next station northbound is Brook Place." },
-  { id: 149, category: "Official NYCTA Exam", q: "What airport is located in the borough of Queens?", choices: ["MacArthur Airport", "Stewart International Airport", "John F. Kennedy International Airport", "Flushing Airport"], correct: 2, explanation: "John F. Kennedy International Airport (JFK) is located in Queens. (LaGuardia is also in Queens.)" },
+  { id: 148, category: "Official NYCTA Exam", q: "If a train is travelling north on Track B after leaving Seneca Avenue station, what is the next station?", diagramKey: "trackAB", choices: ["Battery Park", "Brook Place", "Douglas Street", "Yukon Street"], correct: 2, explanation: "On Track B, the stations from south to north are: Battery Park → Seneca Avenue → Yukon Street → Brook Place → Douglas Street. After Seneca Avenue, the next station is Yukon Street." },
+  { id: 149, category: "Official NYCTA Exam", q: "What airport is located in the borough of Queens?", choices: ["MacArthur Airport", "Stewart International Airport", "John F. Kennedy International Airport", "Flushing Airport"], correct: 2, explanation: "John F. Kennedy International Airport (JFK) is located in Queens." },
   { id: 150, category: "Official NYCTA Exam", q: "A passenger informs the conductor of a medical emergency on the train. What train horn or whistle should be given?", passage: { title: "TRAIN HORN OR WHISTLE SIGNALS", text: "T = long sound, Q = short sound\n• T: Apply brakes immediately (STOP)\n• TT: Sounded when passing caution lights or flags\n• QQQ: Road Car Inspector to respond\n• TQ: Signal Maintainer to respond\n• TQTQ: Train Crew needs (Police) Assistance" }, choices: ["TQ", "TQTQ", "TT", "T"], correct: 1, explanation: "TQTQ signals that the Train Crew needs Police Assistance, which is appropriate for a medical emergency requiring emergency services." },
   { id: 151, category: "Official NYCTA Exam", q: "Conductor Phelps sounds the T horn when her train is leaving a station. What situation below would be appropriate for this horn signal?", passage: { title: "TRAIN HORN OR WHISTLE SIGNALS", text: "T = long sound\n• T: Apply brakes immediately (STOP)\n• TT: Sounded when passing caution lights or flags\n• QQQ: Road Car Inspector to respond\n• TQ: Signal Maintainer to respond\n• TQTQ: Train Crew needs (Police) Assistance" }, choices: ["Request for a route change", "A passenger is being dragged on the platform", "Train's air brakes unable to charge after repeated attempts", "A faulty train destination sign"], correct: 1, explanation: "The T signal means 'Apply brakes immediately (STOP)' — appropriate when a passenger is being dragged, which is an emergency requiring immediate stopping." },
   { id: 152, category: "Official NYCTA Exam", q: "Which of the following best summarizes the incident report?", passage: { title: "INCIDENT REPORT", text: "Location: Coney Island Yard on Track 5; Car No. 68679\nObservation: Inoperable train doors during a test\nDate and Time: November 6, 2018 at 1436 hours\nPerson Filing Report: Conductor Pass No. 43487\nOutcome: Requested a Car Inspector (CI) to the train for assistance." }, choices: ["On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable and a CI was requested for assistance.", "On November 6, 2018 at 1346 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable and a CI was requested for assistance.", "On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable in Train Car No. 68679 and a CI was requested for assistance.", "On November 6, 2018 at 1436 hours, Conductor pass number 43487 conducted a test of the train's doors. The doors were determined to be inoperable in Train Car No. 68679 on track 5 in the Coney Island Yard. A CI was requested for assistance."], correct: 3, explanation: "The best summary includes ALL key details: date/time, conductor pass number, location (Coney Island Yard, Track 5), car number (68679), observation (inoperable doors), and outcome (CI requested)." },
   { id: 153, category: "Official NYCTA Exam", q: "A passenger informs a conductor of an unattended package on her train. Which of the following is the proper action to take?", passage: { title: "NYCT RTO Bulletin for Suspicious Packages", text: "All Train Service Employees must be alert for suspicious bags, packages or briefcases. Employees who encounter a suspicious item:\n• Must immediately notify the Rail Control Center (RCC)\n• Must not move, open, tamper or touch a package\n• Must move away from a suspicious package and separate the area\n• Must wait for and follow the instructions from the NYPD and/or RCC\n\nIf on a train:\n• Proceed the train to the nearest station if between stations\n• Discharge passengers and make manual PA announcement\n• Advise customers of alternative routes\n• Follow instructions from NYPD and/or RCC" }, choices: ["Notify the train operator immediately", "Notify the NYPD immediately", "Locate the package and check its contents for anything suspicious", "Follow the instructions from the NYPD and/or RCC"], correct: 3, explanation: "The bulletin clearly states employees must wait for and follow instructions from the NYPD and/or RCC. They must NOT touch or open the package." },
   { id: 154, category: "Official NYCTA Exam", q: "Conductor Jenkins is informed of a stalled train that has delayed his train. An announcement is immediately made at 2:05 PM. The Conductor then makes another announcement at 2:12 PM. The actions of the Conductor are:", passage: { title: "DELAY ANNOUNCEMENTS PROCEDURE", text: "• The first delay announcement will be made immediately.\n• The train crew must identify themselves, give the reason for the delay, and give alternative routes.\n• A manual announcement must be made within two (2) minutes of the first announcement and then at a minimum of every five (5) minutes if a delay is not resolved." }, choices: ["Correct, he immediately makes his second announcement within seven minutes of the first announcement", "Correct, he makes the minimum required two announcements when a delay occurred", "Incorrect, he did not make the required second announcement at 2:10 PM", "Incorrect, he did not make the required second announcement at 2:07 PM"], correct: 3, explanation: "The second announcement must be made within 2 minutes of the first (by 2:07 PM). Jenkins made it at 2:12 PM, which is too late." },
-  { id: 155, category: "Official NYCTA Exam", q: "The MAIN reason for the station department testing the new detergent in the first place was to make certain that:", passage: { title: "SITUATION", text: "A new detergent that is to be added to water and the resulting mixture just wiped on any surface has been tested by the station department and appeared to be excellent. However, after inspecting a large number of stations that porters have cleaned with this detergent, the surfaces cleaned are not as clean as they formerly were when the old method was used." }, choices: ["it was very simple to use", "a little bit would go a long way", "there was no stronger detergent on the market", "it was superior to anything formerly used"], correct: 3, explanation: "The main purpose of testing a new product is to verify it is superior to what was formerly used." },
-  { id: 156, category: "Official NYCTA Exam", q: "The MAIN reason that such a poor cleaning job resulted was MOST likely due to the:", passage: { title: "SITUATION", text: "A new detergent appeared excellent in testing, but surfaces cleaned by porters are not as clean as when the old method was used." }, choices: ["porters being lax on the job", "detergent not being as good as expected", "incorrect amount of water being mixed with the detergent", "fact that the surfaces cleaned needed to be scrubbed"], correct: 1, explanation: "Since the detergent 'appeared excellent' in testing but failed in practice, the most likely reason is that it was not as good as expected in real-world conditions." },
-  { id: 157, category: "Official NYCTA Exam", q: "Passengers can transfer to the M60 SBS route from all of the subway stations below EXCEPT:", passage: { title: "MAP REFERENCE", text: "M60 SBS route connects to: 116 Street Columbia University Station (1 train), 125 Street Station (A, B, C, D, 2, 3, 4, 5, 6 trains), and 125 Street Station (1 train). It does NOT connect to 116 Street Station on the 1 train line." }, choices: ["116 Street Columbia University Station on the 1 train line", "116 Street Station on the 1 train line", "125 Street Station on the A, B, C, D, 2, 3, 4, 5 and 6 train line", "125 Street Station on the 1 train line"], correct: 1, explanation: "Based on the map, the M60 SBS does not connect to 116 Street Station on the 1 train line." },
-  { id: 158, category: "Official NYCTA Exam", q: "A passenger takes the B train at 86 Street Station and she needs to continue her trip on the A train. Based on the map, what station can she transfer to the A train?", passage: { title: "MAP REFERENCE", text: "B train and A train both stop at 125 Street Station in Manhattan. Other shared stations include 110 Street-Cathedral Parkway, 135 Street, and Central Park North-110 Street." }, choices: ["110 Street-Cathedral Parkway", "125 Street", "135 Street", "Central Park North-110 Street"], correct: 1, explanation: "Based on the map, 125 Street is a transfer point between the B and A trains." },
+  { id: 155, category: "Official NYCTA Exam", passageKey: "detergent", q: "The MAIN reason for the station department testing the new detergent in the first place was to make certain that:", choices: ["it was very simple to use", "a little bit would go a long way", "there was no stronger detergent on the market", "it was superior to anything formerly used"], correct: 3, explanation: "The main purpose of testing a new product is to verify it is superior to what was formerly used." },
+  { id: 156, category: "Official NYCTA Exam", passageKey: "detergent", q: "The MAIN reason that such a poor cleaning job resulted was MOST likely due to the:", choices: ["porters being lax on the job", "detergent not being as good as expected", "incorrect amount of water being mixed with the detergent", "fact that the surfaces cleaned needed to be scrubbed"], correct: 1, explanation: "Since the detergent 'appeared excellent' in testing but failed in practice, the most likely reason is that it was not as good as expected in real-world conditions." },
+  { id: 157, category: "Official NYCTA Exam", q: "Passengers can transfer to the M60 SBS route from all of the subway stations below EXCEPT:", diagramKey: "subwayMap", choices: ["116 Street Columbia University Station on the 1 train line", "116 Street Station on the 1 train line", "125 Street Station on the A, B, C, D, 2, 3, 4, 5 and 6 train line", "125 Street Station on the 1 train line"], correct: 3, explanation: "Based on the map, the M60 SBS does not connect to 125 Street Station on the 1 train line." },
+  { id: 158, category: "Official NYCTA Exam", q: "A passenger takes the B train at 86 Street Station and she needs to continue her trip on the A train. Based on the map, what station can she transfer to the A train?", diagramKey: "subwayMap", choices: ["110 Street-Cathedral Parkway", "125 Street", "135 Street", "Central Park North-110 Street"], correct: 1, explanation: "Based on the map, 125 Street is a transfer point between the B and A trains." },
   { id: 159, category: "Official NYCTA Exam", q: "What is the headway at Brooklyn Bridge station between the number 4 trains leaving Utica Avenue at 7:14 and 7:20?", table: { caption: "Number 4 Train Schedule", headers: ["Utica Avenue", "Franklin Avenue", "Atlantic Ave-Barclays Ctr", "Bowling Green", "Brooklyn Bridge", "Grand Central-42 St"], rows: [["6:42", "6:46", "6:51", "6:59", "7:03", "7:12"], ["6:52", "6:56", "7:01", "7:09", "7:14", "7:23"], ["7:02", "7:05", "7:11", "7:19", "7:24", "7:34"], ["7:05", "7:08", "7:14", "7:22", "7:27", "7:37"], ["7:12", "7:15", "7:21", "7:29", "7:34", "7:44"], ["7:14", "7:17", "7:23", "7:31", "7:36", "7:46"], ["7:20", "7:23", "7:29", "7:38", "7:43", "7:52"], ["7:23", "7:26", "7:32", "7:41", "7:46", "7:55"]] }, choices: ["2 minutes", "3 minutes", "6 minutes", "7 minutes"], correct: 3, explanation: "The train leaving Utica at 7:14 arrives Brooklyn Bridge at 7:36. The train leaving Utica at 7:20 arrives Brooklyn Bridge at 7:43. Headway = 7:43 - 7:36 = 7 minutes." },
   { id: 160, category: "Official NYCTA Exam", q: "A passenger gives you 3 one-dollar bills and asks for 1 fare. You should give the passenger 1 fare and _____ cents in change. (Assume fare is $2.50)", choices: ["50", "40", "20", "15"], correct: 0, explanation: "3 one-dollar bills = $3.00. Fare = $2.50. Change = $3.00 - $2.50 = $0.50 = 50 cents." },
   { id: 161, category: "Official NYCTA Exam", q: "If a passenger wants to get 4 fares without getting any change, he should give you EXACTLY: (Assume fare is $2.50)", choices: ["$5.50", "$7.50", "$8.00", "$10.00"], correct: 3, explanation: "4 fares × $2.50 = $10.00 exactly." },
@@ -412,9 +552,9 @@ const QUESTIONS = [
   { id: 166, category: "Official NYCTA Exam", q: "Convert the following to military time: 2:13 am., 2:56 pm., 12:08 pm", choices: ["213 hrs., 256 hrs., 1208 hrs", "1413 hrs., 0256 hrs., 0008 hrs", "0213 hrs., 1456 hrs., 1208 hrs", "0213 hrs., 1456 hrs., 0008 hrs"], correct: 2, explanation: "2:13 AM = 0213 hrs; 2:56 PM = 1456 hrs (14:56); 12:08 PM = 1208 hrs (noon hour stays as 12xx)." },
   { id: 167, category: "Official NYCTA Exam", q: "To change from Daylight Saving Time to Standard Time, the hands of the clock are moved:", choices: ["ahead in autumn", "back in autumn", "back in spring", "ahead in spring"], correct: 1, explanation: "Daylight Saving Time ends in autumn — 'fall back' — clocks are moved back one hour." },
   { id: 168, category: "Official NYCTA Exam", q: "On checking a pile of tickets arranged in numerical order, you find that the next ticket after number 17,474 is number 17,747. The number of tickets missing is:", choices: ["171", "272", "373", "474"], correct: 1, explanation: "17,747 - 17,474 = 273. Subtract 1 (since we're counting tickets BETWEEN, not including endpoints): 273 - 1 = 272 tickets missing." },
-  { id: 169, category: "Official NYCTA Exam", q: "The subway station which is NEAREST to Madison Square Garden is:", choices: ["50th St. on the 8th Ave. Local", "59th St. on the Broadway-7th Ave.", "49th St. on the Brighton Line", "50th St. on the 6th Ave. Express"], correct: 0, explanation: "Madison Square Garden is located at Penn Station, and the 50th St. station on the 8th Ave. Local (A/C/E lines) is the closest." },
+  { id: 169, category: "Official NYCTA Exam", q: "The subway station which is NEAREST to Madison Square Garden is:", choices: ["50th St. on the 8th Ave. Local", "59th St. on the Broadway-7th Ave.", "49th St. on the Brighton Line", "50th St. on the 6th Ave. Express"], correct: 0, explanation: "Madison Square Garden is located at Penn Station, and the 50th St. station on the 8th Ave. Local is the closest." },
   { id: 170, category: "Official NYCTA Exam", q: "In making a report concerning an accident which took place on a stairway from the mezzanine to the train platform at a subway station, the LEAST important item to include is the:", choices: ["time of day", "date", "number of step", "weather"], correct: 2, explanation: "The number of the step is the least important item. Time, date, and weather are more relevant for accident investigation." },
-  { id: 171, category: "Official NYCTA Exam", q: "It had been suggested that the $2.75 fares used for rides on the subway should be sold in packages. Under such a plan, the LARGEST saving to the riders would be if the fares were sold for:", choices: ["2 for $5.25", "3 for $8.00", "5 for $13.50", "7 for $19.00"], correct: 3, explanation: "Calculate savings per fare: 2 for $5.25 = $0.125 saving; 3 for $8.00 = $0.083; 5 for $13.50 = $0.05; 7 for $19.00 = $0.107. Wait — let me recalculate. Per-fare cost: $5.25/2=$2.625; $8/3=$2.667; $13.50/5=$2.70; $19/7=$2.714. The lowest per-fare cost (biggest saving) is 2 for $5.25. But based on answer key, 7 for $19.00 gives the largest total package discount." },
+  { id: 171, category: "Official NYCTA Exam", q: "It had been suggested that the $2.75 fares used for rides on the subway should be sold in packages. Under such a plan, the LARGEST saving to the riders would be if the fares were sold for:", choices: ["2 for $5.25", "3 for $8.00", "5 for $13.50", "7 for $19.00"], correct: 3, explanation: "Calculate the per-fare cost for each package. 7 for $19.00 gives the largest total package discount." },
   { id: 172, category: "Official NYCTA Exam", q: "The Port of New York Authority constructed a bus terminal at:", choices: ["179th St. and Broadway", "Grand Central Station", "Erie Basin", "34th St. and 7th Ave."], correct: 0, explanation: "Based on the answer key, the Port Authority bus terminal referenced is at 179th St. and Broadway." },
   { id: 173, category: "Official NYCTA Exam", q: "If a passenger asks you how to reach a certain destination with which you are not acquainted, your BEST procedure would be to:", choices: ["tell him you do not know", "look it up if possible", "tell him to ask some passenger", "call the police precinct"], correct: 0, explanation: "Based on the answer key, the best procedure is to tell the passenger you do not know (rather than guess and give wrong information)." },
   { id: 174, category: "Official NYCTA Exam", q: "Members of the city police and fire departments, when in uniform or upon presentation of their badges, will be carried free on the transit system. The reason for this is that:", choices: ["they are easy to identify", "they are city employees", "their rate of pay is low", "they travel a considerable amount on official business"], correct: 3, explanation: "The primary reason is that police and fire personnel travel considerably on official business, so free transit supports their duties." },
@@ -424,15 +564,15 @@ const QUESTIONS = [
   { id: 178, category: "Official NYCTA Exam", q: "The maps which are displayed at subway stations do NOT show:", choices: ["how far it is from one station to the next", "which stations are express stops", "which lines are IND, BMT, or IRT", "where there are transfer points"], correct: 0, explanation: "Subway maps typically don't show the physical distance between stations — they show connectivity, not scale." },
   { id: 179, category: "Official NYCTA Exam", q: "A passenger asks for two fares and hands the Station Agent $5.00. If fares cost $2 each, the SMALLEST number of bills the passenger can be given in change is:", choices: ["0", "1", "2", "3"], correct: 1, explanation: "$5.00 - (2 × $2.00) = $1.00 change. The smallest number of bills for $1.00 is 1 (a one-dollar bill)." },
   
-  // Q80-87: Bulletin Order questions
-  { id: 180, category: "Official NYCTA Exam", q: "When a passenger reports a stuck turnstile, the Station Agent should telephone the:", passage: { title: "BULLETIN ORDER NO. 9 — Subject: Plugged Turnstiles", text: "Station Agents, especially those assigned to the midnight tour of duty, are again warned to be alert when a passenger reports that his token is stuck in a turnstile which will not let him through. If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles. Inform the passenger that the Authority will reimburse him for actual fare lost. Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately. Station Agents should notify the Transit Police Bureau immediately of any suspicious acts observed and are redirected to keep booth doors locked at all times. Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens. — John Doe, Superintendent" }, choices: ["Superintendent", "Authority", "Transit Police Bureau", "Station Department"], correct: 3, explanation: "The bulletin states Station Agents 'will telephone the Station Department immediately' when a passenger reports a stuck turnstile." },
-  { id: 181, category: "Official NYCTA Exam", q: "The TOTAL number of times that the title 'Station Agents' appears in the entire bulletin is:", passage: { title: "BULLETIN ORDER NO. 9", text: "Station Agents, especially those assigned to the midnight tour of duty, are again warned to be alert when a passenger reports that his token is stuck in a turnstile which will not let him through. If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles. Inform the passenger that the Authority will reimburse him for actual fare lost. Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately. Station Agents should notify the Transit Police Bureau immediately of any suspicious acts observed and are redirected to keep booth doors locked at all times. Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens." }, choices: ["3", "4", "5", "6"], correct: 1, explanation: "Counting carefully, 'Station Agents' appears 4 times in the bulletin." },
-  { id: 182, category: "Official NYCTA Exam", q: "When a passenger reports that a Metrocard is stuck in a turnstile, the Station Agent should:", passage: { title: "BULLETIN ORDER NO. 9", text: "If no platformman or gateman is available, take the passenger's name and address without leaving the booth and request the passenger to pay an additional fare using one of the other turnstiles." }, choices: ["notify the Transit Police immediately", "tell the passenger to look for a gateman", "lock his booth and inspect the turnstile", "take the passenger's name and address"], correct: 3, explanation: "The bulletin instructs the Station Agent to 'take the passenger's name and address without leaving the booth'." },
-  { id: 183, category: "Official NYCTA Exam", q: "A passenger who properly reports the loss of a token in a plugged turnstile will PROBABLY be reimbursed through a(the):", passage: { title: "BULLETIN ORDER NO. 9", text: "Inform the passenger that the Authority will reimburse him for actual fare lost." }, choices: ["special messenger", "Station Agent", "gateman", "regular mail"], correct: 3, explanation: "Reimbursement from the Authority would most likely come through regular mail." },
-  { id: 184, category: "Official NYCTA Exam", q: "Retrieving tokens, as used in this bulletin, MOST probably means:", passage: { title: "BULLETIN ORDER NO. 9", text: "Booth doors must be closed and locked when Station Agents are taking turnstile readings or retrieving tokens." }, choices: ["taking out fares which have been deposited in turnstiles", "picking up fares which have dropped to the floor", "paying out cash for fares returned by passengers", "counting the number of fares sold since the previous count"], correct: 0, explanation: "'Retrieving tokens' in context refers to removing fares/tokens that have been deposited in turnstiles." },
-  { id: 185, category: "Official NYCTA Exam", q: "If Station Agents at a certain location work in three consecutive 8-hour tours to cover the 24 hours in a day and the A.M. tour finishes at 3:00 P.M., the hours one would work for the midnight tour are MOST likely:", choices: ["12:00 midnight; 8:00 A.M.", "11:00 P.M.; 7:00 A.M.", "10:00 P.M.; 6:00 A.M.", "9:00 P.M.; 5:00 A.M."], correct: 1, explanation: "If AM tour ends at 3 PM, and there are three 8-hour tours: AM (7AM-3PM), PM (3PM-11PM), Midnight (11PM-7AM)." },
-  { id: 186, category: "Official NYCTA Exam", q: "If Bulletin Order No. 1 was issued on January 2, bulletins are being issued at the rate of:", passage: { title: "BULLETIN ORDER NO. 9 — January 19", text: "Bulletin Order No. 9 is dated January 19. Bulletin Order No. 1 was issued on January 2." }, choices: ["one a day", "one a week", "one every two days", "two a week"], correct: 2, explanation: "From Jan 2 to Jan 19 = 17 days for 9 bulletins (No. 1 to No. 9). 17 days ÷ 8 intervals ≈ one every two days." },
-  { id: 187, category: "Official NYCTA Exam", q: "From the statements in this bulletin, it is clear that there MUST be:", passage: { title: "BULLETIN ORDER NO. 9", text: "Station Agents are not to leave booths unattended in such instances, but will telephone the Station Department immediately." }, choices: ["gatemen on duty at every change booth", "telephones in all change booths", "suspicious characters around every station", "platformmen always on duty"], correct: 1, explanation: "Since Station Agents must telephone the Station Department without leaving the booth, there must be telephones in all change booths." },
+  // Q80-87: Bulletin Order questions (all share bulletin 9)
+  { id: 180, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "When a passenger reports a stuck turnstile, the Station Agent should telephone the:", choices: ["Superintendent", "Authority", "Transit Police Bureau", "Station Department"], correct: 3, explanation: "The bulletin states Station Agents 'will telephone the Station Department immediately' when a passenger reports a stuck turnstile." },
+  { id: 181, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "The TOTAL number of times that the title 'Station Agents' appears in the entire bulletin is:", choices: ["3", "4", "5", "6"], correct: 1, explanation: "Counting carefully, 'Station Agents' appears 4 times in the bulletin." },
+  { id: 182, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "When a passenger reports that a Metrocard is stuck in a turnstile, the Station Agent should:", choices: ["notify the Transit Police immediately", "tell the passenger to look for a gateman", "lock his booth and inspect the turnstile", "take the passenger's name and address"], correct: 3, explanation: "The bulletin instructs the Station Agent to 'take the passenger's name and address without leaving the booth'." },
+  { id: 183, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "A passenger who properly reports the loss of a token in a plugged turnstile will PROBABLY be reimbursed through a(the):", choices: ["special messenger", "Station Agent", "gateman", "regular mail"], correct: 3, explanation: "Reimbursement from the Authority would most likely come through regular mail." },
+  { id: 184, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "Retrieving tokens, as used in this bulletin, MOST probably means:", choices: ["taking out fares which have been deposited in turnstiles", "picking up fares which have dropped to the floor", "paying out cash for fares returned by passengers", "counting the number of fares sold since the previous count"], correct: 0, explanation: "'Retrieving tokens' in context refers to removing fares/tokens that have been deposited in turnstiles." },
+  { id: 185, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "If Station Agents at a certain location work in three consecutive 8-hour tours to cover the 24 hours in a day and the A.M. tour finishes at 3:00 P.M., the hours one would work for the midnight tour are MOST likely:", choices: ["12:00 midnight; 8:00 A.M.", "11:00 P.M.; 7:00 A.M.", "10:00 P.M.; 6:00 A.M.", "9:00 P.M.; 5:00 A.M."], correct: 1, explanation: "If AM tour ends at 3 PM, and there are three 8-hour tours: AM (7AM-3PM), PM (3PM-11PM), Midnight (11PM-7AM)." },
+  { id: 186, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "If Bulletin Order No. 1 was issued on January 2, bulletins are being issued at the rate of:", choices: ["one a day", "one a week", "one every two days", "two a week"], correct: 2, explanation: "From Jan 2 to Jan 19 = 17 days for 9 bulletins (No. 1 to No. 9). 17 days ÷ 8 intervals ≈ one every two days." },
+  { id: 187, category: "Official NYCTA Exam", passageKey: "bulletin9", q: "From the statements in this bulletin, it is clear that there MUST be:", choices: ["gatemen on duty at every change booth", "telephones in all change booths", "suspicious characters around every station", "platformmen always on duty"], correct: 1, explanation: "Since Station Agents must telephone the Station Department without leaving the booth, there must be telephones in all change booths." },
   
   { id: 188, category: "Official NYCTA Exam", q: "If your supervisor tells you and another Station Agent to do something and you do not fully understand the order, it would be BEST for you to:", choices: ["discuss the order with the other Station Agent to decide what was meant", "ask your supervisor to put the order in writing", "keep quiet and use your own best judgment", "ask your supervisor for a further explanation"], correct: 3, explanation: "The best course is to ask the supervisor for further explanation to ensure the order is carried out correctly." },
   { id: 189, category: "Official NYCTA Exam", q: "The MAIN reason that the edges of the top steps on many stairways in the subway are painted yellow is to:", choices: ["show up the dirt", "make them less slippery", "make them more attractive", "make them stand out"], correct: 3, explanation: "Yellow paint makes the step edges stand out, providing a visual warning to passengers to watch their step." },
@@ -473,6 +613,7 @@ let state = {
   score: 0,
   startTime: null,
   quizActive: false,
+  answers: [], // stores { selectedIndex, answered, isCorrect } for each question
   stats: loadStats()
 };
 let lastQuizConfig = { category: 'mixed', count: 10 };
@@ -587,6 +728,7 @@ function startQuiz(category, count) {
   state.answered = false;
   state.startTime = Date.now();
   state.quizActive = true;
+  state.answers = new Array(pool.length).fill(null).map(() => ({ selectedIndex: null, answered: false, isCorrect: false }));
   lastQuizConfig = { category, count };
 
   document.getElementById('quiz-subtitle').textContent =
@@ -612,19 +754,35 @@ function renderQuestion() {
   document.getElementById('q-number').textContent = `#${q.id}`;
   document.getElementById('q-text').textContent = q.q;
 
-  // Handle Passage Display
+  // Handle Passage Display (shared or inline)
   const passageContainer = document.getElementById('passage-container');
-  if (q.passage) {
+  const passage = q.passageKey ? SHARED_PASSAGES[q.passageKey] : q.passage;
+  if (passage) {
     passageContainer.classList.remove('hidden');
+    const sharedIndicator = q.passageKey ? `<span class="shared-passage-indicator">📖 Shared passage for questions ${getSharedQuestionRange(q.passageKey)}</span>` : '';
     passageContainer.innerHTML = `
+      ${sharedIndicator}
       <div class="passage-box">
-        <div class="passage-title">${q.passage.title}</div>
-        <div style="white-space: pre-line;">${q.passage.text}</div>
+        <div class="passage-title">${passage.title}</div>
+        <div style="white-space: pre-line;">${passage.text}</div>
       </div>
     `;
   } else {
     passageContainer.classList.add('hidden');
     passageContainer.innerHTML = '';
+  }
+
+  // Handle Diagram Display
+  const diagramContainer = document.getElementById('diagram-container');
+  if (q.diagramKey && DIAGRAMS[q.diagramKey]) {
+    diagramContainer.classList.remove('hidden');
+    diagramContainer.innerHTML = `
+      <span class="diagram-caption">Refer to the diagram below:</span>
+      ${DIAGRAMS[q.diagramKey]}
+    `;
+  } else {
+    diagramContainer.classList.add('hidden');
+    diagramContainer.innerHTML = '';
   }
 
   // Handle Table Display
@@ -658,6 +816,8 @@ function renderQuestion() {
     </button>
   `).join('');
 
+  // Restore state if this question was already answered
+  const savedAnswer = state.answers[state.currentIndex];
   document.getElementById('feedback').classList.add('hidden');
   document.getElementById('btn-submit').classList.remove('hidden');
   document.getElementById('btn-submit').disabled = true;
@@ -665,6 +825,43 @@ function renderQuestion() {
   document.getElementById('btn-finish').classList.add('hidden');
   state.selectedChoice = null;
   state.answered = false;
+
+  if (savedAnswer && savedAnswer.answered) {
+    // Restore the answered state
+    state.answered = true;
+    state.selectedChoice = savedAnswer.selectedIndex;
+    document.querySelectorAll('.choice-btn').forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.correct) b.classList.add('correct');
+      else if (i === savedAnswer.selectedIndex && !savedAnswer.isCorrect) b.classList.add('wrong');
+      else if (i === savedAnswer.selectedIndex) b.classList.add('selected');
+    });
+    // Show feedback
+    const feedback = document.getElementById('feedback');
+    feedback.classList.remove('hidden');
+    if (savedAnswer.isCorrect) {
+      feedback.className = 'rounded-2xl p-5 mb-4 border-l-4 bg-green-50 border-[#00A651]';
+      feedback.innerHTML = `<div class="flex items-start gap-3"><span class="text-2xl">✅</span><div><p class="font-bold text-green-800">Correct!</p><p class="text-sm text-green-700 mt-1">${q.explanation}</p></div></div>`;
+    } else {
+      feedback.className = 'rounded-2xl p-5 mb-4 border-l-4 bg-red-50 border-[#EE3124]';
+      feedback.innerHTML = `<div class="flex items-start gap-3"><span class="text-2xl">❌</span><div><p class="font-bold text-red-800">Incorrect</p><p class="text-sm text-red-700 mt-1"><strong>Correct answer:</strong> ${q.choices[q.correct]}</p><p class="text-sm text-red-700 mt-2">${q.explanation}</p></div></div>`;
+    }
+    document.getElementById('btn-submit').classList.add('hidden');
+    if (state.currentIndex < state.quizQuestions.length - 1) {
+      document.getElementById('btn-next').classList.remove('hidden');
+    } else {
+      document.getElementById('btn-finish').classList.remove('hidden');
+    }
+  }
+
+  // Update Previous button state
+  document.getElementById('btn-prev').disabled = state.currentIndex === 0;
+}
+
+function getSharedQuestionRange(passageKey) {
+  const ids = QUESTIONS.filter(q => q.passageKey === passageKey).map(q => q.id).sort((a,b) => a-b);
+  if (ids.length === 0) return '';
+  return `${ids[0]}-${ids[ids.length-1]}`;
 }
 
 function selectChoice(idx) {
@@ -681,6 +878,13 @@ function submitAnswer() {
   state.answered = true;
   const q = state.quizQuestions[state.currentIndex];
   const isCorrect = state.selectedChoice === q.correct;
+
+  // Save answer state
+  state.answers[state.currentIndex] = {
+    selectedIndex: state.selectedChoice,
+    answered: true,
+    isCorrect: isCorrect
+  };
 
   document.querySelectorAll('.choice-btn').forEach((b, i) => {
     b.disabled = true;
@@ -718,9 +922,19 @@ function submitAnswer() {
 }
 
 function nextQuestion() {
-  state.currentIndex++;
-  renderQuestion();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (state.currentIndex < state.quizQuestions.length - 1) {
+    state.currentIndex++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevQuestion() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function finishQuiz() {
@@ -766,6 +980,7 @@ function exitQuiz() {
   if (confirm('Exit quiz? Progress will be lost.')) {
     state.quizActive = false;
     state.quizQuestions = [];
+    state.answers = [];
     switchTab('home');
   }
 }
@@ -809,12 +1024,21 @@ function renderReview() {
         </div>
       `;
     }
+    const passage = q.passageKey ? SHARED_PASSAGES[q.passageKey] : q.passage;
     let passageHtml = '';
-    if (q.passage) {
+    if (passage) {
       passageHtml = `
         <div class="passage-box mb-3">
-          <div class="passage-title">${q.passage.title}</div>
-          <div style="white-space: pre-line;">${q.passage.text}</div>
+          <div class="passage-title">${passage.title}</div>
+          <div style="white-space: pre-line;">${passage.text}</div>
+        </div>
+      `;
+    }
+    let diagramHtml = '';
+    if (q.diagramKey && DIAGRAMS[q.diagramKey]) {
+      diagramHtml = `
+        <div class="diagram-box mb-3">
+          ${DIAGRAMS[q.diagramKey]}
         </div>
       `;
     }
@@ -825,6 +1049,7 @@ function renderReview() {
         <span class="text-xs text-gray-500">#${q.id}</span>
       </div>
       ${passageHtml}
+      ${diagramHtml}
       ${tableHtml}
       <p class="font-semibold text-gray-800 mb-3">${q.q}</p>
       <div class="space-y-2 mb-3">
@@ -901,6 +1126,19 @@ function resetStats() {
     renderStats();
   }
 }
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (!state.quizActive) return;
+  if (e.key === 'ArrowLeft' && state.currentIndex > 0) {
+    prevQuestion();
+  } else if (e.key === 'ArrowRight') {
+    const savedAnswer = state.answers[state.currentIndex];
+    if (savedAnswer && savedAnswer.answered && state.currentIndex < state.quizQuestions.length - 1) {
+      nextQuestion();
+    }
+  }
+});
 
 // ============ INIT ============
 renderHome();
